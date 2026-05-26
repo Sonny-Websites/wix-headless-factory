@@ -1,0 +1,18 @@
+# Codex home config for wix-headless-factory bootstrap runs.
+# Mounted via codex-action `codex-home` input.
+
+[profiles.factory]
+model = "gpt-5.3-codex"
+approval_policy = "never"
+sandbox_mode = "workspace-write"
+
+[profiles.factory.tools]
+shell = true
+web_search = true
+
+# Optional Wix MCP for documentation search (site ops use @wix/cli + curl per the skill).
+# Uncomment if you configure Wix MCP credentials for documentation search.
+#
+# [mcp_servers.wix]
+# command = "npx"
+# args = ["-y", "@wix/wix-mcp-remote@latest"]

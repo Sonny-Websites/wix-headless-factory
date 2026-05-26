@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Wix Headless Factory Site Context",
+  "type": "object",
+  "required": ["siteName", "sitePrompt"],
+  "properties": {
+    "siteName": {
+      "type": "string",
+      "description": "Brand / site display name passed from n8n"
+    },
+    "sitePrompt": {
+      "type": "string",
+      "description": "Full natural-language site brief passed from n8n"
+    },
+    "slug": {
+      "type": "string",
+      "description": "Optional scaffold slug override (lowercase alnum, 3-20 chars)"
+    },
+    "deploy": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to release to Wix after build"
+    },
+    "triggeredBy": {
+      "type": "string",
+      "description": "Actor or automation that started the run"
+    },
+    "runId": {
+      "type": "string",
+      "description": "GitHub Actions run id"
+    }
+  }
+}

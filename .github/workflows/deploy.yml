@@ -1,0 +1,92 @@
+name: Deploy Wix Headless Site
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_dir:
+        description: Path to Wix Headless project root (default repo root)
+        required: false
+        type: string
+        default: "."
+  workflow_call:
+    inputs:
+      project_dir:
+        description: Path to Wix Headless project root
+        required: false
+        type: string
+        default: "."
+
+concurrency:
+  group: deploy-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and release to Wix
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    env:
+      PROJECT_DIR: ${{ inputs.project_dir || '.' }}
+      WIX_CLI_API_KEY: ${{ secrets.WIX_CLI_API_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Authenticate Wix CLI
+        env:
+          WIX_CLI_API_KEY: ${{ secrets.WIX_CLI_API_KEY }}
+        run: bash scripts/verify-wix-auth.sh
+
+      - name: Install project dependencies
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          if [[ -f package-lock.json ]]; then
+            npm ci
+          elif [[ -f package.json ]]; then
+            npm install
+          else
+            echo "No package.json in $PROJECT_DIR" >&2
+            exit 1
+          fi
+
+      - name: Build and release
+        id: release
+        run: |
+          RELEASE_URL="$(PROJECT_DIR="${{ env.PROJECT_DIR }}" bash scripts/release-to-wix.sh)"
+          echo "release_url=$RELEASE_URL" >> "$GITHUB_OUTPUT"
+          echo "Released to: $RELEASE_URL"
+
+      - name: Commit updated run.json
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .wix/run.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "No run.json changes"
+          else
+            git commit -m "Record Wix release URL (run ${{ github.run_id }})"
+            git push origin HEAD
+          fi
+
+      - name: Write job summary
+        if: always()
+        env:
+          RELEASE_URL: ${{ steps.release.outputs.release_url }}
+        run: |
+          {
+            echo "## Wix Headless deploy"
+            echo ""
+            if [[ -n "$RELEASE_URL" ]]; then
+              echo "**Live URL:** $RELEASE_URL"
+            else
+              echo "Deploy did not produce a release URL. Check job logs."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
