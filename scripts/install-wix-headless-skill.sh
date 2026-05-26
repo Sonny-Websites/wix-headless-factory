@@ -16,4 +16,10 @@ if [[ ! -f "$SKILL_ROOT/SKILL.md" ]]; then
   exit 1
 fi
 
+# Factory override: explicit --site-template blank (see scripts/scaffold.sh)
+if [[ -f scripts/scaffold.sh ]]; then
+  install -m 755 scripts/scaffold.sh "$SKILL_ROOT/scripts/scaffold.sh"
+  echo "Applied factory scaffold.sh (--site-template blank, --skip-git)"
+fi
+
 echo "Wix Headless skill installed at $SKILL_ROOT"

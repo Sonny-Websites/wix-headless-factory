@@ -80,7 +80,7 @@ Discovery (CI overrides) → Setup → Seed → ORCHESTRATION → Build → [Rel
 Critical checkpoints:
 
 1. **Pre-flight** — `npx @wix/cli whoami` must pass before scaffold (CI logs in with API key in a prior workflow step).
-2. **Scaffold** — `bash .skills/wix-headless/scripts/scaffold.sh "$slug" "$siteName"` (background early in Discovery).
+2. **Scaffold** — `bash .skills/wix-headless/scripts/scaffold.sh "$slug" "$siteName"` (background early in Discovery). Factory installs an override that passes `--site-template blank` and `--skip-git` per [create headless](https://dev.wix.com/docs/wix-cli/command-reference/project-creation/create-headless).
 3. **Setup** — patch `.wix/site.json`, install inferred apps, env pull, npm install.
 4. **Seed + Orchestration** — full skill flow through components, pages, images.
 5. **Build** — `npx @wix/cli build` must exit 0 before commit.
