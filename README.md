@@ -5,7 +5,7 @@ Reusable bootstrap template for spinning up **Wix Managed Headless** sites from 
 Each cloned repo gets:
 
 - **`AGENTS.md`** — Codex / agent rules with CI overrides for the [Wix Headless skill](https://www.wix-headless.dev/skill.md)
-- **Bootstrap workflow** — runs Codex against the skill, scaffolds the project, builds, commits, optionally releases
+- **Bootstrap workflow** — runs Codex against the skill, scaffolds the project, builds, commits, publishes a Wix preview, optionally releases
 - **Deploy workflow** — build + release on demand via GitHub-hosted runners
 
 ## Architecture
@@ -24,7 +24,8 @@ flowchart LR
   repo --> gha
   gha -->|WIX_CLI_API_KEY| codex
   codex -->|scaffold build commit| repo
-  codex -->|optional release| wix
+  gha -->|wix preview| wix
+  gha -->|optional release| wix
 ```
 
 ## Prerequisites
@@ -62,7 +63,7 @@ Store the key as org or repo secret `WIX_CLI_API_KEY`. No self-hosted runner req
 | `site_name` | yes | Brand / display name (from n8n) |
 | `site_prompt` | yes | Full site brief — Codex infers Stores/CMS/Blog/Forms from this |
 | `site_slug` | no | Metadata slug override (`^[a-z0-9]{3,20}$`); does **not** change project folder |
-| `deploy` | no | Release to Wix after successful build (default `false`) |
+| `deploy` | no | Release to production after preview (default `false`) |
 
 **What it does:**
 
@@ -71,7 +72,8 @@ Store the key as org or repo secret `WIX_CLI_API_KEY`. No self-hosted runner req
 3. Writes `.github/codex/.bootstrap-context.json` from inputs
 4. Runs Codex (`openai/codex-action@v1`) with `AGENTS.md` + skill instructions
 5. Commits generated project files and pushes (site always lives in `./site/`)
-6. Optionally installs deps and runs `scripts/release-to-wix.sh` with `PROJECT_DIR=site` when `deploy=true`
+6. Builds and runs `scripts/preview-to-wix.sh` — preview URL in job summary, webhook, and `.wix/run.json`
+7. Optionally runs `scripts/release-to-wix.sh` when `deploy=true` (production live URL)
 
 ### Edit and preview (`edit-and-preview.yml`)
 

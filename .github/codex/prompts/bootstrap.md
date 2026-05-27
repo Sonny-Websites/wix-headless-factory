@@ -29,8 +29,8 @@ Run the Wix Headless skill end-to-end for this site:
 3. Scaffold the Wix-managed Headless Astro project.
 4. Install inferred apps, seed content, design, wire components and pages.
 5. Run `npx @wix/cli build` in `./site/` — the build **must pass**.
-6. Write `.wix/run.json` with timing, verticals, and outcome URLs.
-7. If **Release after build** is `true`, run `PROJECT_DIR=site bash scripts/release-to-wix.sh` and record the release URL.
+6. Write `.wix/run.json` with timing, verticals, and site metadata (CI will add preview/release URLs after your commit).
+7. Do **not** run `wix preview` or `wix release` — CI publishes a preview after bootstrap; production release runs only when **Release after build** is `true`.
 
 Follow **CI / non-interactive rules** in `AGENTS.md`: no `AskUserQuestion`, auto-approve the plan, use the provided site name as brand.
 

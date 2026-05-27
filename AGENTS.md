@@ -76,7 +76,7 @@ Known app IDs (for verification): `references/commands/known-apps.json`.
 Follow the skill's canonical pipeline:
 
 ```
-Discovery (CI overrides) → Setup → Seed → ORCHESTRATION → Build → [Release if deploy]
+Discovery (CI overrides) → Setup → Seed → ORCHESTRATION → Build → [CI: Preview] → [Release if deploy]
 ```
 
 Critical checkpoints:
@@ -86,7 +86,8 @@ Critical checkpoints:
 3. **Setup** — patch `.wix/site.json`, install inferred apps, env pull, `npm install` in `./site/`.
 4. **Seed + Orchestration** — full skill flow through components, pages, images.
 5. **Build** — `npx @wix/cli build` in `./site/` must exit 0 before commit.
-6. **Release** (only if `deploy: true`) — `PROJECT_DIR=site bash scripts/release-to-wix.sh`; capture stdout as live URL.
+6. **Preview** (CI after commit) — `PROJECT_DIR=site bash scripts/preview-to-wix.sh`; capture stdout as preview URL. Do not run preview in Codex.
+7. **Release** (CI only if `deploy: true`) — `PROJECT_DIR=site bash scripts/release-to-wix.sh`; capture stdout as live URL.
 
 Write **`.wix/run.json`** at end of run per `references/shared/RETURN_CONTRACT.md`.
 

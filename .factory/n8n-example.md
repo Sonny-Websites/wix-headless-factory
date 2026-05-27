@@ -61,7 +61,7 @@ Map n8n fields:
 | `event` | `bootstrap.completed` \| `edit.completed` \| `deploy.completed` |
 | `jobResult` | `success` \| `failure` \| `cancelled` |
 | `runUrl` | Link to the Actions run |
-| `outcome.previewUrl` | After edit workflow |
+| `outcome.previewUrl` | After bootstrap or edit workflow |
 | `outcome.releaseUrl` | After bootstrap (`deploy=true`) or deploy workflow |
 | `inputs` | Workflow inputs (`siteName`, `editPrompt`, etc.) |
 | `runJson` | Full `.wix/run.json` when present |

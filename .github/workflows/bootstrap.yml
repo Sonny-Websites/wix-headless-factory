@@ -42,6 +42,7 @@ jobs:
       RUN_ID: ${{ github.run_id }}
     outputs:
       final_message: ${{ steps.run_codex.outputs.final-message }}
+      preview_url: ${{ steps.preview.outputs.preview_url }}
       release_url: ${{ steps.release.outputs.release_url }}
     steps:
       - name: Checkout
@@ -101,7 +102,6 @@ jobs:
         run: bash scripts/commit-generated.sh
 
       - name: Install project dependencies
-        if: inputs.deploy == true
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
           if [[ ! -f wix.config.json ]]; then
@@ -114,6 +114,29 @@ jobs:
             npm install
           fi
 
+      - name: Build and publish Wix preview
+        id: preview
+        env:
+          WIX_CLI_API_KEY: ${{ secrets.WIX_CLI_API_KEY }}
+          PROJECT_DIR: ${{ env.PROJECT_DIR }}
+        run: |
+          PREVIEW_URL="$(bash scripts/preview-to-wix.sh)"
+          echo "preview_url=$PREVIEW_URL" >> "$GITHUB_OUTPUT"
+          echo "Preview URL: $PREVIEW_URL"
+
+      - name: Record preview URL on main
+        env:
+          GIT_USER_NAME: github-actions[bot]
+          GIT_USER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          git add .wix/run.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "No run.json changes to commit"
+          else
+            git commit -m "Record Wix preview URL (run ${{ github.run_id }})"
+            git push origin HEAD
+          fi
+
       - name: Release to Wix
         id: release
         if: inputs.deploy == true
@@ -124,6 +147,20 @@ jobs:
           RELEASE_URL="$(bash scripts/release-to-wix.sh)"
           echo "release_url=$RELEASE_URL" >> "$GITHUB_OUTPUT"
           echo "Released to: $RELEASE_URL"
+
+      - name: Record release URL on main
+        if: inputs.deploy == true
+        env:
+          GIT_USER_NAME: github-actions[bot]
+          GIT_USER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          git add .wix/run.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "No run.json changes to commit"
+          else
+            git commit -m "Record Wix release URL (run ${{ github.run_id }})"
+            git push origin HEAD
+          fi
 
       - name: Upload bootstrap artifacts
         if: always()
@@ -164,6 +201,7 @@ jobs:
           SITE_SLUG: ${{ inputs.site_slug }}
           DEPLOY: ${{ inputs.deploy }}
           PROJECT_DIR: site
+          PREVIEW_URL: ${{ needs.bootstrap.outputs.preview_url }}
           RELEASE_URL: ${{ needs.bootstrap.outputs.release_url }}
           FINAL_MESSAGE: ${{ needs.bootstrap.outputs.final_message }}
         run: bash scripts/notify-webhook.sh
@@ -171,6 +209,7 @@ jobs:
       - name: Write job summary
         env:
           FINAL_MESSAGE: ${{ needs.bootstrap.outputs.final_message }}
+          PREVIEW_URL: ${{ needs.bootstrap.outputs.preview_url }}
           RELEASE_URL: ${{ needs.bootstrap.outputs.release_url }}
         run: |
           {
@@ -181,6 +220,10 @@ jobs:
             echo "| Site name | ${{ inputs.site_name }} |"
             echo "| Deploy | ${{ inputs.deploy }} |"
             echo "| Run | ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} |"
+            if [[ -n "$PREVIEW_URL" ]]; then
+              echo ""
+              echo "**Preview URL:** $PREVIEW_URL"
+            fi
             if [[ -n "$RELEASE_URL" ]]; then
               echo ""
               echo "**Live URL:** $RELEASE_URL"
