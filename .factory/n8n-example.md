@@ -6,6 +6,7 @@ Checklist for wiring n8n to clone this template and bootstrap a Wix Headless sit
 
 - [ ] Publish `wix-headless-factory` as a GitHub template repository
 - [ ] Org secrets: `OPENAI_API_KEY`, `WIX_CLI_API_KEY`
+- [ ] Optional: `N8N_WEBHOOK_URL` (+ `N8N_WEBHOOK_SECRET`) on each site repo for completion callbacks
 - [ ] Wix API key in [API Keys Manager](https://manage.wix.com/account/api-keys) with **Wix CLI - Git Integration** (+ Stores/CMS/etc. if bootstrap needs them)
 
 No self-hosted runner required — workflows use `ubuntu-latest`.
@@ -53,7 +54,21 @@ Map n8n fields:
 
 ### Node C — Wait for completion
 
-Poll every 30–60 s:
+**Option A — Webhook (recommended):** add an n8n **Webhook** trigger. Copy the production URL into GitHub secret `N8N_WEBHOOK_URL` on the site repo. When a workflow finishes, Actions POSTs JSON:
+
+| Field | Meaning |
+| --- | --- |
+| `event` | `bootstrap.completed` \| `edit.completed` \| `deploy.completed` |
+| `jobResult` | `success` \| `failure` \| `cancelled` |
+| `runUrl` | Link to the Actions run |
+| `outcome.previewUrl` | After edit workflow |
+| `outcome.releaseUrl` | After bootstrap (`deploy=true`) or deploy workflow |
+| `inputs` | Workflow inputs (`siteName`, `editPrompt`, etc.) |
+| `runJson` | Full `.wix/run.json` when present |
+
+Optional: set `N8N_WEBHOOK_SECRET` and verify header `X-Webhook-Secret` in n8n.
+
+**Option B — Poll:** every 30–60 s:
 
 ```
 GET /repos/{owner}/{repo}/actions/runs?event=workflow_dispatch&per_page=1
@@ -61,8 +76,8 @@ GET /repos/{owner}/{repo}/actions/runs?event=workflow_dispatch&per_page=1
 
 When `status=completed`:
 
-- `conclusion=success` → fetch repo, read `.wix/run.json` for URLs
-- `conclusion=failure` → surface logs link to operator
+- `conclusion=success` → use webhook payload or read `.wix/run.json`
+- `conclusion=failure` → surface `runUrl` to operator
 
 ### Node D — Notify customer (optional)
 

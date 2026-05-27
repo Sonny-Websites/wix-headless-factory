@@ -27,6 +27,8 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: write
+    outputs:
+      release_url: ${{ steps.release.outputs.release_url }}
     env:
       PROJECT_DIR: ${{ inputs.project_dir || 'site' }}
       WIX_CLI_API_KEY: ${{ secrets.WIX_CLI_API_KEY }}
@@ -76,15 +78,42 @@ jobs:
             git push origin HEAD
           fi
 
-      - name: Write job summary
-        if: always()
+  notify:
+    name: Notify deploy outcome
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: always()
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Notify n8n webhook
+        continue-on-error: true
         env:
-          RELEASE_URL: ${{ steps.release.outputs.release_url }}
+          N8N_WEBHOOK_URL: ${{ secrets.N8N_WEBHOOK_URL }}
+          N8N_WEBHOOK_SECRET: ${{ secrets.N8N_WEBHOOK_SECRET }}
+          WEBHOOK_EVENT: deploy.completed
+          JOB_RESULT: ${{ needs.deploy.result }}
+          WORKFLOW_NAME: ${{ github.workflow }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          PROJECT_DIR: ${{ inputs.project_dir || 'site' }}
+          RELEASE_URL: ${{ needs.deploy.outputs.release_url }}
+        run: bash scripts/notify-webhook.sh
+
+      - name: Write job summary
+        env:
+          RELEASE_URL: ${{ needs.deploy.outputs.release_url }}
         run: |
           {
             echo "## Wix Headless production release"
             echo ""
-            echo "Promotes the built project to the live site (`wix release`)."
+            echo "Promotes the built project to the live site (\`wix release\`)."
             echo ""
             if [[ -n "$RELEASE_URL" ]]; then
               echo "**Live URL:** $RELEASE_URL"

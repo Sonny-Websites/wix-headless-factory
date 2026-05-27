@@ -150,6 +150,30 @@ jobs:
     needs: edit-and-preview
     if: always()
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Notify n8n webhook
+        continue-on-error: true
+        env:
+          N8N_WEBHOOK_URL: ${{ secrets.N8N_WEBHOOK_URL }}
+          N8N_WEBHOOK_SECRET: ${{ secrets.N8N_WEBHOOK_SECRET }}
+          WEBHOOK_EVENT: edit.completed
+          JOB_RESULT: ${{ needs.edit-and-preview.result }}
+          WORKFLOW_NAME: ${{ github.workflow }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          EDIT_PROMPT: ${{ inputs.edit_prompt }}
+          PROJECT_DIR: ${{ inputs.project_dir }}
+          PREVIEW_URL: ${{ needs.edit-and-preview.outputs.preview_url }}
+          FINAL_MESSAGE: ${{ needs.edit-and-preview.outputs.final_message }}
+        run: bash scripts/notify-webhook.sh
+
       - name: Write job summary
         env:
           FINAL_MESSAGE: ${{ needs.edit-and-preview.outputs.final_message }}

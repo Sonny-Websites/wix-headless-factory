@@ -35,6 +35,8 @@ flowchart LR
 | --- | --- |
 | `OPENAI_API_KEY` | Codex CLI via [openai/codex-action](https://github.com/openai/codex-action) |
 | `WIX_CLI_API_KEY` | Wix CLI auth for scaffold, build, and release in CI |
+| `N8N_WEBHOOK_URL` | Optional — n8n Webhook trigger URL; workflows POST on completion |
+| `N8N_WEBHOOK_SECRET` | Optional — sent as `X-Webhook-Secret` for n8n auth |
 
 ### Wix API key
 
@@ -127,13 +129,15 @@ Content-Type: application/json
 - Headers: `Authorization: Bearer {{$credentials.githubToken}}`, `Accept: application/vnd.github+json`
 - Body (JSON): map your site name and prompt fields to `inputs.site_name` and `inputs.site_prompt`
 
-Poll run status:
+**On completion (recommended):** set `N8N_WEBHOOK_URL` on the repo. Each workflow POSTs a JSON payload (`bootstrap.completed`, `edit.completed`, or `deploy.completed`) with `jobResult`, `runUrl`, and `outcome.previewUrl` / `outcome.releaseUrl`. Use an n8n **Webhook** trigger instead of polling.
+
+Poll run status (fallback):
 
 ```http
 GET /repos/{owner}/{repo}/actions/runs?event=workflow_dispatch
 ```
 
-After success, read the live URL from the job summary or `.wix/run.json` in the repo.
+After success, read URLs from the webhook body, job summary, or `.wix/run.json`.
 
 See [`.factory/n8n-example.md`](.factory/n8n-example.md) for a step-by-step n8n checklist.
 
@@ -191,6 +195,7 @@ Codex reads **`AGENTS.md`** at repo root. Key CI behaviors:
 │   ├── commit-edits.sh
 │   ├── prepare-edit-context.sh
 │   ├── preview-to-wix.sh
+│   ├── notify-webhook.sh
 │   └── release-to-wix.sh
 ├── .factory/                          # Automation metadata
 ├── site/                              # Wix Headless Astro project (created by bootstrap)
