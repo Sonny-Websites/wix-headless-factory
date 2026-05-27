@@ -3,18 +3,17 @@
 # Mirrors dev.wix.com/skills/wix-headless/scripts/release.sh
 set -euo pipefail
 
-PROJECT_DIR="${PROJECT_DIR:-.}"
+WIX_PROJECT_DIR="${WIX_PROJECT_DIR:-site}"
+PROJECT_DIR="${PROJECT_DIR:-$WIX_PROJECT_DIR}"
 
-# Scaffold creates ./{slug}/; fall back when PROJECT_DIR is default but SLUG is set.
-if [[ ! -f "$PROJECT_DIR/wix.config.json" ]] && [[ "$PROJECT_DIR" == "." ]] && [[ -n "${SLUG:-}" ]] && [[ -f "${SLUG}/wix.config.json" ]]; then
-  PROJECT_DIR="$SLUG"
+# Fall back to factory default when caller left PROJECT_DIR at repo root.
+if [[ ! -f "$PROJECT_DIR/wix.config.json" ]] && [[ "$PROJECT_DIR" == "." ]] && [[ -f "${WIX_PROJECT_DIR}/wix.config.json" ]]; then
+  PROJECT_DIR="$WIX_PROJECT_DIR"
 fi
 
 if [[ ! -f "$PROJECT_DIR/wix.config.json" ]]; then
   echo "release-to-wix.sh: wix.config.json not found in $PROJECT_DIR" >&2
-  if [[ -n "${SLUG:-}" ]]; then
-    echo "release-to-wix.sh: scaffold usually writes ./${SLUG}/wix.config.json — try PROJECT_DIR=${SLUG}" >&2
-  fi
+  echo "release-to-wix.sh: factory scaffold writes ./${WIX_PROJECT_DIR}/wix.config.json — try PROJECT_DIR=${WIX_PROJECT_DIR}" >&2
   exit 1
 fi
 

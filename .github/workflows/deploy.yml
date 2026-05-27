@@ -4,17 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       project_dir:
-        description: Path to Wix Headless project root (default repo root)
+        description: Path to Wix Headless project root (default `site`)
         required: false
         type: string
-        default: "."
+        default: "site"
   workflow_call:
     inputs:
       project_dir:
         description: Path to Wix Headless project root
         required: false
         type: string
-        default: "."
+        default: "site"
 
 concurrency:
   group: deploy-${{ github.repository }}
@@ -28,7 +28,7 @@ jobs:
     permissions:
       contents: write
     env:
-      PROJECT_DIR: ${{ inputs.project_dir || '.' }}
+      PROJECT_DIR: ${{ inputs.project_dir || 'site' }}
       WIX_CLI_API_KEY: ${{ secrets.WIX_CLI_API_KEY }}
     steps:
       - name: Checkout

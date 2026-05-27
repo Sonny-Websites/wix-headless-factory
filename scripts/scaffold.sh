@@ -1,19 +1,28 @@
 #!/usr/bin/env bash
 # Factory override for .skills/wix-headless/scripts/scaffold.sh
 # Uses --site-template blank and --skip-git per Wix CLI create-headless docs.
+# Always scaffolds into ./site/ (WIX_PROJECT_DIR) for a deterministic layout.
 #
-# Usage: bash scripts/scaffold.sh "<project-slug>" "<brand-name>"
+# Usage: bash scripts/scaffold.sh "<brand-name>"
+# Legacy (skill): bash scripts/scaffold.sh "<slug>" "<brand-name>" — slug ignored for folder name
 set -euo pipefail
 
-if [[ $# -lt 2 || -z "${1:-}" || -z "${2:-}" ]]; then
-  echo "scaffold.sh: both args required. Got project-slug='${1:-}' brand-name='${2:-}'." >&2
-  echo "Usage: bash scripts/scaffold.sh \"<slug>\" \"<brand>\" — slug first, brand quoted." >&2
+PROJECT_DIR="${WIX_PROJECT_DIR:-site}"
+
+if [[ $# -lt 1 || -z "${1:-}" ]]; then
+  echo "scaffold.sh: brand name required." >&2
+  echo "Usage: bash scripts/scaffold.sh \"<brand>\" — or legacy: scaffold.sh \"<slug>\" \"<brand>\"" >&2
   exit 2
 fi
 
-if [[ ! "$1" =~ ^[a-z0-9]{3,20}$ ]]; then
-  echo "scaffold.sh: project-slug='$1' is not valid." >&2
-  echo "Slug must be 3-20 lowercase alphanumeric chars (no hyphens, no spaces)." >&2
+if [[ $# -ge 2 && -n "${2:-}" ]]; then
+  BRAND="$2"
+else
+  BRAND="$1"
+fi
+
+if [[ ! "$PROJECT_DIR" =~ ^[a-z0-9]{3,20}$ ]]; then
+  echo "scaffold.sh: WIX_PROJECT_DIR='$PROJECT_DIR' is not valid (3-20 lowercase alnum)." >&2
   exit 2
 fi
 
@@ -24,8 +33,8 @@ if ! npx @wix/cli whoami >/dev/null 2>&1; then
 fi
 
 npm create @wix/new@latest headless -- \
-  --business-name "$2" \
-  --project-name "$1" \
+  --business-name "$BRAND" \
+  --project-name "$PROJECT_DIR" \
   --site-template blank \
   --no-publish \
   --skip-install \

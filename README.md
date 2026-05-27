@@ -59,7 +59,7 @@ Store the key as org or repo secret `WIX_CLI_API_KEY`. No self-hosted runner req
 | --- | --- | --- |
 | `site_name` | yes | Brand / display name (from n8n) |
 | `site_prompt` | yes | Full site brief — Codex infers Stores/CMS/Blog/Forms from this |
-| `site_slug` | no | Scaffold slug override (`^[a-z0-9]{3,20}$`) |
+| `site_slug` | no | Metadata slug override (`^[a-z0-9]{3,20}$`); does **not** change project folder |
 | `deploy` | no | Release to Wix after successful build (default `false`) |
 
 **What it does:**
@@ -68,8 +68,8 @@ Store the key as org or repo secret `WIX_CLI_API_KEY`. No self-hosted runner req
 2. Installs the Wix Headless skill from `https://wix-headless.dev/skill.tgz`
 3. Writes `.github/codex/.bootstrap-context.json` from inputs
 4. Runs Codex (`openai/codex-action@v1`) with `AGENTS.md` + skill instructions
-5. Commits generated project files and pushes (site lives in `./{slug}/`, not repo root)
-6. Optionally installs deps and runs `scripts/release-to-wix.sh` with `PROJECT_DIR={slug}` when `deploy=true`
+5. Commits generated project files and pushes (site always lives in `./site/`)
+6. Optionally installs deps and runs `scripts/release-to-wix.sh` with `PROJECT_DIR=site` when `deploy=true`
 
 ### Deploy (`deploy.yml`)
 
@@ -78,7 +78,7 @@ Store the key as org or repo secret `WIX_CLI_API_KEY`. No self-hosted runner req
 
 Builds and releases an existing Wix Headless project (`npx @wix/cli build` → `npx @wix/cli release`).
 
-Set **`project_dir`** to the scaffold slug folder (e.g. `test`) when `wix.config.json` is not at the repo root.
+Default **`project_dir`** is `site` (factory scaffold output). Override only if you moved the project.
 
 ## n8n integration
 
@@ -170,6 +170,7 @@ Codex reads **`AGENTS.md`** at repo root. Key CI behaviors:
 │   ├── commit-generated.sh
 │   └── release-to-wix.sh
 ├── .factory/                          # Automation metadata
+├── site/                              # Wix Headless Astro project (created by bootstrap)
 └── .wix/                              # Created during bootstrap
 ```
 

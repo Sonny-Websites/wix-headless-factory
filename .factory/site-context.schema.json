@@ -14,7 +14,12 @@
     },
     "slug": {
       "type": "string",
-      "description": "Optional scaffold slug override (lowercase alnum, 3-20 chars)"
+      "description": "Optional metadata slug (lowercase alnum, 3-20 chars); project files always go in ./site/"
+    },
+    "projectDir": {
+      "type": "string",
+      "const": "site",
+      "description": "Fixed Wix Headless project directory for all factory repos"
     },
     "deploy": {
       "type": "boolean",

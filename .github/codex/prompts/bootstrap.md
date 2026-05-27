@@ -12,7 +12,8 @@ You are bootstrapping a new **Wix Managed Headless** site in this repository.
 ## Site inputs
 
 - **Site name (brand):** {{SITE_NAME}}
-- **Site slug (scaffold):** {{SITE_SLUG}}
+- **Site slug (metadata):** {{SITE_SLUG}}
+- **Project directory (always):** `site/` — scaffold, build, and release use `./site/`
 - **Site prompt (full brief):**
 
 {{SITE_PROMPT}}
@@ -27,9 +28,9 @@ Run the Wix Headless skill end-to-end for this site:
 2. Infer verticals and required Wix apps (Stores, CMS, Blog, Forms, etc.) from the site prompt.
 3. Scaffold the Wix-managed Headless Astro project.
 4. Install inferred apps, seed content, design, wire components and pages.
-5. Run `npx @wix/cli build` — the build **must pass**.
+5. Run `npx @wix/cli build` in `./site/` — the build **must pass**.
 6. Write `.wix/run.json` with timing, verticals, and outcome URLs.
-7. If **Release after build** is `true`, run `bash scripts/release-to-wix.sh` and record the release URL.
+7. If **Release after build** is `true`, run `PROJECT_DIR=site bash scripts/release-to-wix.sh` and record the release URL.
 
 Follow **CI / non-interactive rules** in `AGENTS.md`: no `AskUserQuestion`, auto-approve the plan, use the provided site name as brand.
 
