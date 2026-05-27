@@ -1,0 +1,52 @@
+---
+import Layout from "../layouts/Layout.astro";
+import * as items from "@wix/wix-data-items-sdk";
+import { auth } from "@wix/essentials";
+
+type FaqItem = {
+  question: string;
+  answer: string;
+  sortOrder: number;
+};
+
+let faqs: FaqItem[] = [
+  {
+    question: "Can I edit this FAQ?",
+    answer: "Yes. Update the FAQ collection in Wix CMS and republish.",
+    sortOrder: 1,
+  },
+];
+
+try {
+  const query = auth.elevate(items.query);
+  const { items: result } = await query("faq").ascending("sortOrder").limit(50).find();
+  if (result.length > 0) {
+    faqs = result.map((item: Record<string, unknown>) => ({
+      question: String(item.question ?? ""),
+      answer: String(item.answer ?? ""),
+      sortOrder: Number(item.sortOrder ?? 0),
+    }));
+  }
+} catch (err) {
+  console.error("[faq] CMS query failed:", err);
+}
+---
+
+<Layout title="Test | FAQ" description="Frequently asked questions">
+  <main class="container">
+    <section class="content">
+      <p class="eyebrow">FAQ</p>
+      <h1>Frequently Asked Questions</h1>
+      <div class="faq-list">
+        {
+          faqs.map((faq) => (
+            <article class="faq-item">
+              <h2>{faq.question}</h2>
+              <p>{faq.answer}</p>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+  </main>
+</Layout>

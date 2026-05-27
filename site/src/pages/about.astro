@@ -1,0 +1,29 @@
+---
+import Layout from "../layouts/Layout.astro";
+import * as items from "@wix/wix-data-items-sdk";
+import { auth } from "@wix/essentials";
+
+let heading = "About Test";
+let body =
+  "This content can be edited from the Wix dashboard CMS collection named about-content.";
+
+try {
+  const query = auth.elevate(items.query);
+  const { items: result } = await query("about-content").limit(1).find();
+  const about = result[0];
+  if (about?.heading) heading = String(about.heading);
+  if (about?.body) body = String(about.body);
+} catch (err) {
+  console.error("[about] CMS query failed:", err);
+}
+---
+
+<Layout title="Test | About" description="About Test">
+  <main class="container">
+    <section class="content">
+      <p class="eyebrow">About</p>
+      <h1>{heading}</h1>
+      <p class="lede">{body}</p>
+    </section>
+  </main>
+</Layout>
