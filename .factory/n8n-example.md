@@ -77,8 +77,10 @@ Trigger deploy only:
 
 ```
 POST /repos/{owner}/{repo}/actions/workflows/deploy.yml/dispatches
-{ "ref": "main", "inputs": { "project_dir": "." } }
+{ "ref": "main", "inputs": { "project_dir": "{{ $json.siteSlug }}" } }
 ```
+
+Use the same slug as bootstrap (`site_slug` or derived from `site_name`). Default `"."` only works if the project was moved to repo root.
 
 ## 4. Prompt tips for n8n
 

@@ -5,8 +5,16 @@ set -euo pipefail
 
 PROJECT_DIR="${PROJECT_DIR:-.}"
 
+# Scaffold creates ./{slug}/; fall back when PROJECT_DIR is default but SLUG is set.
+if [[ ! -f "$PROJECT_DIR/wix.config.json" ]] && [[ "$PROJECT_DIR" == "." ]] && [[ -n "${SLUG:-}" ]] && [[ -f "${SLUG}/wix.config.json" ]]; then
+  PROJECT_DIR="$SLUG"
+fi
+
 if [[ ! -f "$PROJECT_DIR/wix.config.json" ]]; then
   echo "release-to-wix.sh: wix.config.json not found in $PROJECT_DIR" >&2
+  if [[ -n "${SLUG:-}" ]]; then
+    echo "release-to-wix.sh: scaffold usually writes ./${SLUG}/wix.config.json — try PROJECT_DIR=${SLUG}" >&2
+  fi
   exit 1
 fi
 

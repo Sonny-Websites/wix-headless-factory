@@ -68,8 +68,8 @@ Store the key as org or repo secret `WIX_CLI_API_KEY`. No self-hosted runner req
 2. Installs the Wix Headless skill from `https://wix-headless.dev/skill.tgz`
 3. Writes `.github/codex/.bootstrap-context.json` from inputs
 4. Runs Codex (`openai/codex-action@v1`) with `AGENTS.md` + skill instructions
-5. Commits generated project files and pushes
-6. Optionally runs `scripts/release-to-wix.sh` when `deploy=true`
+5. Commits generated project files and pushes (site lives in `./{slug}/`, not repo root)
+6. Optionally installs deps and runs `scripts/release-to-wix.sh` with `PROJECT_DIR={slug}` when `deploy=true`
 
 ### Deploy (`deploy.yml`)
 
@@ -77,6 +77,8 @@ Store the key as org or repo secret `WIX_CLI_API_KEY`. No self-hosted runner req
 **Runner:** `ubuntu-latest`
 
 Builds and releases an existing Wix Headless project (`npx @wix/cli build` → `npx @wix/cli release`).
+
+Set **`project_dir`** to the scaffold slug folder (e.g. `test`) when `wix.config.json` is not at the repo root.
 
 ## n8n integration
 

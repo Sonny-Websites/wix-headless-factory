@@ -100,11 +100,26 @@ jobs:
           GIT_USER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
         run: bash scripts/commit-generated.sh
 
+      - name: Install project dependencies
+        if: inputs.deploy == true
+        working-directory: ${{ env.SLUG }}
+        run: |
+          if [[ ! -f wix.config.json ]]; then
+            echo "No wix.config.json in ${{ env.SLUG }}/ — bootstrap may not have scaffolded." >&2
+            exit 1
+          fi
+          if [[ -f package-lock.json ]]; then
+            npm ci
+          elif [[ -f package.json ]]; then
+            npm install
+          fi
+
       - name: Release to Wix
         id: release
         if: inputs.deploy == true
         env:
           WIX_CLI_API_KEY: ${{ secrets.WIX_CLI_API_KEY }}
+          PROJECT_DIR: ${{ env.SLUG }}
         run: |
           RELEASE_URL="$(bash scripts/release-to-wix.sh)"
           echo "release_url=$RELEASE_URL" >> "$GITHUB_OUTPUT"
