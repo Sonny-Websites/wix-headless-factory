@@ -158,7 +158,8 @@ Codex reads **`AGENTS.md`** at repo root. Key CI behaviors:
 │   │   ├── bootstrap.yml              # n8n entry point
 │   │   └── deploy.yml                 # manual / post-bootstrap release
 │   └── codex/
-│       ├── config.toml                # Codex profile (factory)
+│       ├── config.toml                # Codex base config
+│       ├── factory.config.toml        # `--profile factory` overlay
 │       └── prompts/bootstrap.md       # Bootstrap prompt template
 ├── scripts/
 │   ├── install-wix-headless-skill.sh

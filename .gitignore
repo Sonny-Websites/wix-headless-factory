@@ -32,3 +32,6 @@ dist/
 
 # Skill install (re-fetched each run; optional local cache)
 .skills/
+
+# Local sandbox / scaffold experiments
+.sandbox-*/

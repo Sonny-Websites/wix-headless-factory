@@ -1,0 +1,10 @@
+# Selected via codex-action `codex-args: '--profile factory'`.
+# See https://developers.openai.com/codex/config-advanced#profiles
+
+model = "gpt-5.3-codex"
+approval_policy = "never"
+sandbox_mode = "workspace-write"
+
+[tools]
+shell = true
+web_search = true
