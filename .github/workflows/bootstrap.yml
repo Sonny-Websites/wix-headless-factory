@@ -107,17 +107,12 @@ jobs:
         run: bash scripts/commit-generated.sh
 
       - name: Install project dependencies
-        working-directory: ${{ env.PROJECT_DIR }}
         run: |
-          if [[ ! -f wix.config.json ]]; then
+          if [[ ! -f "${{ env.PROJECT_DIR }}/wix.config.json" ]]; then
             echo "No wix.config.json in ${{ env.PROJECT_DIR }}/ — bootstrap may not have scaffolded." >&2
             exit 1
           fi
-          if [[ -f package-lock.json ]]; then
-            npm ci
-          elif [[ -f package.json ]]; then
-            npm install
-          fi
+          bash scripts/npm-install-project.sh "${{ env.PROJECT_DIR }}"
 
       - name: Build and publish Wix preview
         id: preview

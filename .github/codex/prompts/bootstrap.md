@@ -28,7 +28,8 @@ Run the Wix Headless skill end-to-end for this site:
 2. Infer verticals and required Wix apps (Stores, CMS, Blog, Forms, etc.) from the site prompt.
 3. Scaffold the Wix-managed Headless Astro project.
 4. Install inferred apps, seed content, design, wire components and pages.
-5. Run `npx @wix/cli build` in `./site/` — the build **must pass**.
+5. If you changed `package.json`, run `npm install` in `./site/` and commit `package-lock.json`.
+6. Run `npx @wix/cli build` in `./site/` — the build **must pass**.
 6. Write `.wix/run.json` with timing, verticals, and site metadata (CI will add preview/release URLs after your commit).
 7. Do **not** run `wix preview` or `wix release` — CI publishes a preview after bootstrap; production release runs only when **Release after build** is `true`.
 

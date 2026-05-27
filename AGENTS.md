@@ -85,7 +85,7 @@ Critical checkpoints:
 2. **Scaffold** — `bash .skills/wix-headless/scripts/scaffold.sh "$siteName"` (or legacy two-arg form). Creates **`./site/`** with `--site-template blank` and `--skip-git` per [create headless](https://dev.wix.com/docs/wix-cli/command-reference/project-creation/create-headless).
 3. **Setup** — patch `.wix/site.json`, install inferred apps, env pull, `npm install` in `./site/`.
 4. **Seed + Orchestration** — full skill flow through components, pages, images.
-5. **Build** — `npx @wix/cli build` in `./site/` must exit 0 before commit.
+5. **Build** — if `package.json` changed, run `npm install` in `./site/` and commit `package-lock.json`; then `npx @wix/cli build` must exit 0 before commit.
 6. **Preview** (CI after commit) — `PROJECT_DIR=site bash scripts/preview-to-wix.sh`; capture stdout as preview URL. Do not run preview in Codex.
 7. **Release** (CI only if `deploy: true`) — `PROJECT_DIR=site bash scripts/release-to-wix.sh`; capture stdout as live URL.
 

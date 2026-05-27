@@ -108,13 +108,7 @@ jobs:
           git pull origin main
 
       - name: Install project dependencies
-        working-directory: ${{ env.PROJECT_DIR }}
-        run: |
-          if [[ -f package-lock.json ]]; then
-            npm ci
-          elif [[ -f package.json ]]; then
-            npm install
-          fi
+        run: bash scripts/npm-install-project.sh "${{ env.PROJECT_DIR }}"
 
       - name: Build and publish Wix preview
         id: preview

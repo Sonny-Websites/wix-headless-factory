@@ -47,16 +47,7 @@ jobs:
         run: bash scripts/verify-wix-auth.sh
 
       - name: Install project dependencies
-        working-directory: ${{ env.PROJECT_DIR }}
-        run: |
-          if [[ -f package-lock.json ]]; then
-            npm ci
-          elif [[ -f package.json ]]; then
-            npm install
-          else
-            echo "No package.json in $PROJECT_DIR" >&2
-            exit 1
-          fi
+        run: bash scripts/npm-install-project.sh "${{ env.PROJECT_DIR }}"
 
       - name: Build and release
         id: release
