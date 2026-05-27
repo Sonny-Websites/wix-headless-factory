@@ -1,0 +1,41 @@
+{
+  "phase": "seed-cms",
+  "status": "ok",
+  "seeded": {
+    "collectionIds": {
+      "about": "about-content",
+      "faq": "faq"
+    },
+    "itemIds": {
+      "about": [
+        "4a1b4003-e87b-4d0b-9828-18d622df405d"
+      ],
+      "faq": [
+        "b65edcde-92aa-4731-ae41-11b4f77fdef4",
+        "49e0b974-c7c4-4eee-ae38-fe3eac429ac8",
+        "a75f9a7e-a44e-4923-9225-9cb239cb7274",
+        "ec891fff-7fc0-4238-a623-0aad0bce0d21",
+        "b03e615b-cee0-42e7-9c22-28fae0664239",
+        "8effb82e-a046-44d3-8c29-ce8613a8e123"
+      ]
+    },
+    "created": {
+      "about": 1,
+      "faq": 6
+    }
+  },
+  "recipeCalls": [
+    {
+      "url": "https://www.wixapis.com/wix-data/v2/collections",
+      "status": 200
+    },
+    {
+      "url": "https://www.wixapis.com/wix-data/v2/items",
+      "status": 200
+    },
+    {
+      "url": "https://www.wixapis.com/wix-data/v2/items/query",
+      "status": 200
+    }
+  ]
+}

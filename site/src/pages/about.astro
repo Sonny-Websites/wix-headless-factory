@@ -1,0 +1,25 @@
+---
+import * as items from '@wix/wix-data-items-sdk';
+import { auth } from '@wix/essentials';
+import Layout from '../layouts/Layout.astro';
+
+let about = null;
+
+try {
+  const query = auth.elevate(items.query);
+  const result = await query('about-content').limit(1).find();
+  about = result.items?.[0] ?? null;
+} catch (error) {
+  console.error('[cms:about] query failed', error);
+}
+---
+
+<Layout title="test | About">
+  <section class="hero reading">
+    <p class="muted">About</p>
+    <h1>{about?.heading ?? 'About test'}</h1>
+    <p>
+      {about?.body ?? 'Use Wix CMS to edit this content from the dashboard without touching code.'}
+    </p>
+  </section>
+</Layout>

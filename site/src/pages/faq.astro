@@ -1,0 +1,34 @@
+---
+import * as items from '@wix/wix-data-items-sdk';
+import { auth } from '@wix/essentials';
+import Layout from '../layouts/Layout.astro';
+
+let faqs = [];
+
+try {
+  const query = auth.elevate(items.query);
+  const result = await query('faq').ascending('sortOrder').limit(50).find();
+  faqs = result.items ?? [];
+} catch (error) {
+  console.error('[cms:faq] query failed', error);
+}
+---
+
+<Layout title="test | FAQ">
+  <section class="hero reading">
+    <p class="muted">FAQ</p>
+    <h1>Frequently asked questions</h1>
+    <p>Questions and answers are editable in Wix Content Manager.</p>
+  </section>
+
+  <section class="section reading">
+    <div class="card-grid">
+      {faqs.map((faq) => (
+        <article class="card">
+          <h2>{faq.question}</h2>
+          <p>{faq.answer}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+</Layout>

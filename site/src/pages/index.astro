@@ -1,0 +1,40 @@
+---
+import * as items from '@wix/wix-data-items-sdk';
+import { auth } from '@wix/essentials';
+import Layout from '../layouts/Layout.astro';
+
+let about = null;
+let faqs = [];
+
+try {
+  const query = auth.elevate(items.query);
+  const aboutResult = await query('about-content').limit(1).find();
+  about = aboutResult.items?.[0] ?? null;
+  const faqResult = await query('faq').ascending('sortOrder').limit(3).find();
+  faqs = faqResult.items ?? [];
+} catch (error) {
+  console.error('[cms:index] query failed', error);
+}
+---
+
+<Layout title="test | Home">
+  <section class="hero">
+    <p class="muted">CMS-powered marketing starter</p>
+    <h1>{about?.heading ?? 'Launch with a clean headless foundation.'}</h1>
+    <p class="reading">
+      {about?.body ?? 'This project is scaffolded for Wix Managed Headless with editable content and a build-safe Astro structure.'}
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>Top questions</h2>
+    <div class="card-grid">
+      {faqs.map((faq) => (
+        <article class="card">
+          <h3>{faq.question}</h3>
+          <p>{faq.answer}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+</Layout>
