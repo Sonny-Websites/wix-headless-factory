@@ -27,6 +27,7 @@ dist/
 .github/codex/bootstrap-output.md
 .github/codex/edit-output.md
 .github/codex/*.json
+.github/codex/sessions/
 
 # OS / editor
 .DS_Store

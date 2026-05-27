@@ -37,14 +37,25 @@ if [[ "$PREVIEW_STATUS" -ne 0 ]]; then
   exit "$PREVIEW_STATUS"
 fi
 
-PREVIEW_URL="$(grep -oE 'https://[A-Za-z0-9._~:/?#\[\]@!$&'"'"'()*+,;=%-]+' "$PREVIEW_OUTPUT" | grep -E 'wix|preview' | head -n 1 || true)"
+# Strip ANSI and join wrapped lines (dashboard URL can break across lines).
+PREVIEW_TEXT="$(sed -E 's/\x1b\[[0-9;]*[a-zA-Z]//g' "$PREVIEW_OUTPUT" | tr '\n' ' ')"
+
+# Wix CLI: "› Site (https://….wix-host.com)"
+PREVIEW_URL="$(grep -oE 'Site \(https://[^)]+\)' <<<"$PREVIEW_TEXT" \
+  | head -n 1 \
+  | sed -E 's/^Site \((.*)\)$/\1/' || true)"
 
 if [[ -z "$PREVIEW_URL" ]]; then
-  PREVIEW_URL="$(grep -oE 'https://[A-Za-z0-9._~:/?#\[\]@!$&'"'"'()*+,;=%-]+' "$PREVIEW_OUTPUT" | head -n 1 || true)"
+  PREVIEW_URL="$(grep -oE 'https://[A-Za-z0-9.-]+\.wix(-site)?-host\.com[^[:space:)]<>]*' <<<"$PREVIEW_TEXT" | head -n 1 || true)"
+fi
+
+if [[ -z "$PREVIEW_URL" ]]; then
+  PREVIEW_URL="$(grep -oE 'https://[^[:space:])<>]+' <<<"$PREVIEW_TEXT" | grep -iE 'wix-host|preview\.' | head -n 1 || true)"
 fi
 
 if [[ -z "$PREVIEW_URL" ]]; then
   echo "preview-to-wix.sh: could not extract preview URL from CLI output" >&2
+  sed -n '1,80p' "$PREVIEW_OUTPUT" >&2 || true
   exit 1
 fi
 

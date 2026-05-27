@@ -32,11 +32,10 @@ jobs:
       CI: "true"
       TRIGGERED_BY: ${{ github.actor }}
       RUN_ID: ${{ github.run_id }}
-      GITHUB_TOKEN: ${{ github.token }}
     outputs:
       final_message: ${{ steps.run_codex.outputs.final-message }}
       preview_url: ${{ steps.preview.outputs.preview_url }}
-      pr_merged: ${{ steps.commit.outputs.merged }}
+      pr_number: ${{ steps.cpr.outputs.pull-request-number }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -58,9 +57,6 @@ jobs:
 
       - name: Prepare edit context
         run: bash scripts/prepare-edit-context.sh
-
-      - name: Create edit branch
-        run: git checkout -b "edit/${{ github.run_id }}"
 
       - name: Render Codex edit prompt
         run: |
@@ -91,17 +87,34 @@ jobs:
           safety-strategy: drop-sudo
           model: gpt-5.3-codex
 
-      - name: Commit edits and merge to main
-        id: commit
+      - name: Stage site edits
+        run: bash scripts/stage-site-edits.sh
+
+      - name: Create pull request
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          branch: edit/${{ github.run_id }}
+          commit-message: "Site edit: ${{ github.run_id }}"
+          title: "Site edit: ${{ github.run_id }}"
+          body: |
+            Automated site edit from workflow run ${{ github.run_id }}.
+
+            ### Codex summary
+            ${{ steps.run_codex.outputs.final-message }}
+          delete-branch: true
+
+      - name: Merge pull request
+        if: steps.cpr.outputs.pull-request-number != ''
         env:
-          GIT_USER_NAME: github-actions[bot]
-          GIT_USER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
-          EDIT_SUMMARY: "Site edit: ${{ github.run_id }}"
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          bash scripts/commit-edits.sh
-          echo "merged=true" >> "$GITHUB_OUTPUT"
+          gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" --merge --delete-branch
+          echo "Merged PR #${{ steps.cpr.outputs.pull-request-number }} to main"
 
       - name: Sync main after merge
+        if: steps.cpr.outputs.pull-request-number != ''
         run: |
           git fetch origin main
           git checkout main

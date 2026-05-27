@@ -36,6 +36,7 @@ flowchart LR
 | --- | --- |
 | `OPENAI_API_KEY` | Codex CLI via [openai/codex-action](https://github.com/openai/codex-action) |
 | `WIX_CLI_API_KEY` | Wix CLI auth for scaffold, build, and release in CI |
+| `GH_TOKEN` | PAT (or fine-grained token) with `contents` + `pull-requests` write — required for **Edit and preview** to open and merge PRs ([`GITHUB_TOKEN` cannot create PRs](https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#permissions-for-the-github_token) in many repos) |
 | `N8N_WEBHOOK_URL` | Optional — n8n Webhook trigger URL; workflows POST on completion |
 | `N8N_WEBHOOK_SECRET` | Optional — sent as `X-Webhook-Secret` for n8n auth |
 
@@ -88,7 +89,7 @@ Store the key as org or repo secret `WIX_CLI_API_KEY`. No self-hosted runner req
 **What it does:**
 
 1. Runs Codex against the existing `./site/` project (no re-scaffold)
-2. Commits edits on branch `edit/{run_id}`, opens a PR, and **merges to `main`**
+2. Opens a PR via [`peter-evans/create-pull-request`](https://github.com/peter-evans/create-pull-request) using `GH_TOKEN`, then **merges to `main`**
 3. Builds and runs [`wix preview`](https://dev.wix.com/docs/wix-cli/command-reference/project-commands/preview) — preview URL in job summary and `.wix/run.json`
 4. Share the preview URL with the reviewer
 
