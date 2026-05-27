@@ -5,7 +5,8 @@ set -euo pipefail
 
 WIX_PROJECT_DIR="${WIX_PROJECT_DIR:-site}"
 PROJECT_DIR="${PROJECT_DIR:-$WIX_PROJECT_DIR}"
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPTS_DIR/.." && pwd)"
 RUN_JSON="${RUN_JSON:-$REPO_ROOT/.wix/run.json}"
 
 if [[ ! -f "$PROJECT_DIR/wix.config.json" ]] && [[ "$PROJECT_DIR" == "." ]] && [[ -f "${WIX_PROJECT_DIR}/wix.config.json" ]]; then
@@ -19,7 +20,7 @@ fi
 
 cd "$PROJECT_DIR"
 
-bash "$(dirname "$0")/verify-wix-auth.sh"
+bash "$SCRIPTS_DIR/verify-wix-auth.sh"
 
 echo "Building…"
 npx @wix/cli build 1>&2

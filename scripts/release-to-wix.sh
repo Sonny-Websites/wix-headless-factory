@@ -5,6 +5,9 @@ set -euo pipefail
 
 WIX_PROJECT_DIR="${WIX_PROJECT_DIR:-site}"
 PROJECT_DIR="${PROJECT_DIR:-$WIX_PROJECT_DIR}"
+SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPTS_DIR/.." && pwd)"
+RUN_JSON="${RUN_JSON:-$REPO_ROOT/.wix/run.json}"
 
 # Fall back to factory default when caller left PROJECT_DIR at repo root.
 if [[ ! -f "$PROJECT_DIR/wix.config.json" ]] && [[ "$PROJECT_DIR" == "." ]] && [[ -f "${WIX_PROJECT_DIR}/wix.config.json" ]]; then
@@ -19,7 +22,7 @@ fi
 
 cd "$PROJECT_DIR"
 
-bash "$(dirname "$0")/verify-wix-auth.sh"
+bash "$SCRIPTS_DIR/verify-wix-auth.sh"
 
 echo "Building…"
 npx @wix/cli build 1>&2
@@ -68,7 +71,7 @@ fi
 echo "$RELEASE_URL"
 
 # Append release URL to run.json at repo root if present
-export RELEASE_URL RUN_JSON="${RUN_JSON:-$(cd "$(dirname "$0")/.." && pwd)/.wix/run.json}"
+export RELEASE_URL RUN_JSON
 if [[ -f "$RUN_JSON" ]]; then
   node --input-type=module - <<'EOF'
 import { readFileSync, writeFileSync } from 'node:fs';
