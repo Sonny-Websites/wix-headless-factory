@@ -1,0 +1,26 @@
+---
+import * as items from "@wix/wix-data-items-sdk";
+import { auth } from "@wix/essentials";
+import Layout from "../layouts/Layout.astro";
+import { renderRicos } from "../utils/ricos";
+
+let heading = "About test";
+let body = "<p>Content is managed from Wix CMS.</p>";
+
+try {
+  const elevatedQuery = auth.elevate(items.query);
+  const { items: results } = await elevatedQuery("about-content").limit(1).find();
+  const about = results[0];
+  if (about?.heading) heading = String(about.heading);
+  if (about?.body) body = renderRicos(about.body);
+} catch (error) {
+  console.error("[cms] about query failed", error);
+}
+---
+
+<Layout title="test | About">
+  <article>
+    <h1>{heading}</h1>
+    <div set:html={body} />
+  </article>
+</Layout>

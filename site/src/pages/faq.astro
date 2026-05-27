@@ -1,0 +1,60 @@
+---
+import * as items from "@wix/wix-data-items-sdk";
+import { auth } from "@wix/essentials";
+import Layout from "../layouts/Layout.astro";
+import { renderRicos } from "../utils/ricos";
+
+type FaqItem = {
+  _id: string;
+  question: string;
+  answer: unknown;
+  sortOrder?: number;
+};
+
+let faqItems: FaqItem[] = [];
+
+try {
+  const elevatedQuery = auth.elevate(items.query);
+  const { items: results } = await elevatedQuery("faq").limit(100).find();
+  faqItems = (results as FaqItem[]).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+} catch (error) {
+  console.error("[cms] faq query failed", error);
+}
+---
+
+<Layout title="test | FAQ">
+  <section>
+    <h1>Frequently Asked Questions</h1>
+    {
+      faqItems.length === 0 ? (
+        <p>No FAQ entries yet. Add items in Wix CMS collection "faq".</p>
+      ) : (
+        faqItems.map((item) => (
+          <details id={item._id}>
+            <summary>{item.question || "Untitled question"}</summary>
+            <div set:html={renderRicos(item.answer)} />
+          </details>
+        ))
+      )
+    }
+  </section>
+</Layout>
+
+<style>
+  details {
+    border: 1px solid #d8ddd7;
+    border-radius: 0.5rem;
+    background: #fff;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  details > div {
+    margin-top: 0.75rem;
+  }
+</style>

@@ -1,0 +1,33 @@
+---
+import * as items from "@wix/wix-data-items-sdk";
+import { auth } from "@wix/essentials";
+import Layout from "../layouts/Layout.astro";
+import { renderRicos } from "../utils/ricos";
+
+let aboutHeading = "Welcome";
+let aboutBody = "This site is powered by Wix Managed Headless and Wix CMS.";
+let faqCount = 0;
+
+try {
+  const elevatedQuery = auth.elevate(items.query);
+  const aboutRes = await elevatedQuery("about-content").limit(1).find();
+  const aboutItem = aboutRes.items[0];
+  if (aboutItem?.heading) aboutHeading = String(aboutItem.heading);
+  if (aboutItem?.body) aboutBody = renderRicos(aboutItem.body);
+
+  const faqRes = await elevatedQuery("faq").limit(100).find();
+  faqCount = faqRes.items.length;
+} catch (error) {
+  console.error("[cms] home query failed", error);
+}
+---
+
+<Layout title="test | Home">
+  <section>
+    <h1>{aboutHeading}</h1>
+    <div set:html={aboutBody} />
+    <p>
+      FAQs available: <strong>{faqCount}</strong>. View all details on the <a href="/faq">FAQ page</a>.
+    </p>
+  </section>
+</Layout>
