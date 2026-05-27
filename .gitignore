@@ -28,6 +28,9 @@ dist/
 .github/codex/edit-output.md
 .github/codex/*.json
 .github/codex/sessions/
+.github/codex/*.sqlite
+.github/codex/*.sqlite-shm
+.github/codex/*.sqlite-wal
 
 # OS / editor
 .DS_Store

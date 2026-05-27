@@ -51,10 +51,7 @@ jobs:
 
       - name: Build and release
         id: release
-        run: |
-          RELEASE_URL="$(PROJECT_DIR="${{ env.PROJECT_DIR }}" bash scripts/release-to-wix.sh)"
-          echo "release_url=$RELEASE_URL" >> "$GITHUB_OUTPUT"
-          echo "Released to: $RELEASE_URL"
+        run: bash scripts/run-release-for-ci.sh
 
       - name: Commit updated run.json
         if: success()

@@ -24,7 +24,7 @@ cd "$PROJECT_DIR"
 
 bash "$SCRIPTS_DIR/verify-wix-auth.sh"
 
-echo "Building…"
+echo "Building…" >&2
 npx @wix/cli build 1>&2
 
 RELEASE_OUTPUT="$(mktemp)"
@@ -68,12 +68,9 @@ if [[ -z "$RELEASE_URL" ]]; then
   exit 1
 fi
 
-echo "$RELEASE_URL"
-
-# Append release URL to run.json at repo root if present
 export RELEASE_URL RUN_JSON
 if [[ -f "$RUN_JSON" ]]; then
-  node --input-type=module - <<'EOF'
+  node --input-type=module - <<'EOF' >&2
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const runPath = process.env.RUN_JSON;
@@ -88,6 +85,8 @@ run.outcome = run.outcome || {};
 run.outcome.releaseUrl = releaseUrl;
 run.outcome.releasedAt = new Date().toISOString();
 writeFileSync(runPath, JSON.stringify(run, null, 2) + '\n');
-console.log(`Updated ${runPath} with releaseUrl`);
+console.error(`Updated ${runPath} with releaseUrl`);
 EOF
 fi
+
+echo "$RELEASE_URL"

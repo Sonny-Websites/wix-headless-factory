@@ -35,7 +35,7 @@ jobs:
     outputs:
       final_message: ${{ steps.run_codex.outputs.final-message }}
       preview_url: ${{ steps.preview.outputs.preview_url }}
-      pr_number: ${{ steps.cpr.outputs.pull-request-number }}
+      pr_number: ${{ steps.commit_pr.outputs.pr_number }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -70,9 +70,8 @@ jobs:
           console.log('Rendered .github/codex/prompts/edit.rendered.md');
           EOF
 
-      - name: Reset Codex home config
-        run: |
-          git checkout -- .github/codex/config.toml 2>/dev/null || true
+      - name: Restore pristine Codex config
+        run: bash scripts/restore-codex-config.sh
 
       - name: Run Codex site edit
         id: run_codex
@@ -87,34 +86,21 @@ jobs:
           safety-strategy: drop-sudo
           model: gpt-5.3-codex
 
+      - name: Discard Codex home artifacts
+        run: bash scripts/discard-codex-home-artifacts.sh
+
       - name: Stage site edits
         run: bash scripts/stage-site-edits.sh
 
-      - name: Create pull request
-        id: cpr
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          branch: edit/${{ github.run_id }}
-          commit-message: "Site edit: ${{ github.run_id }}"
-          title: "Site edit: ${{ github.run_id }}"
-          body: |
-            Automated site edit from workflow run ${{ github.run_id }}.
-
-            ### Codex summary
-            ${{ steps.run_codex.outputs.final-message }}
-          delete-branch: true
-
-      - name: Merge pull request
-        if: steps.cpr.outputs.pull-request-number != ''
+      - name: Commit staged edits and merge PR
+        id: commit_pr
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" --merge --delete-branch
-          echo "Merged PR #${{ steps.cpr.outputs.pull-request-number }} to main"
+          EDIT_SUMMARY: "Site edit: ${{ github.run_id }}"
+        run: bash scripts/commit-staged-edit-pr.sh
 
       - name: Sync main after merge
-        if: steps.cpr.outputs.pull-request-number != ''
+        if: steps.commit_pr.outputs.pr_number != ''
         run: |
           git fetch origin main
           git checkout main
@@ -127,10 +113,7 @@ jobs:
         id: preview
         env:
           WIX_CLI_API_KEY: ${{ secrets.WIX_CLI_API_KEY }}
-        run: |
-          PREVIEW_URL="$(PROJECT_DIR="${{ env.PROJECT_DIR }}" bash scripts/preview-to-wix.sh)"
-          echo "preview_url=$PREVIEW_URL" >> "$GITHUB_OUTPUT"
-          echo "Preview URL: $PREVIEW_URL"
+        run: bash scripts/run-preview-for-ci.sh
 
       - name: Record preview URL on main
         env:

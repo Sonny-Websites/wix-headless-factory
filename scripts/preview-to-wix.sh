@@ -22,7 +22,7 @@ cd "$PROJECT_DIR"
 
 bash "$SCRIPTS_DIR/verify-wix-auth.sh"
 
-echo "Building…"
+echo "Building…" >&2
 npx @wix/cli build 1>&2
 
 PREVIEW_OUTPUT="$(mktemp)"
@@ -59,11 +59,9 @@ if [[ -z "$PREVIEW_URL" ]]; then
   exit 1
 fi
 
-echo "$PREVIEW_URL"
-
 export PREVIEW_URL RUN_JSON
 if [[ -f "$RUN_JSON" ]]; then
-  node --input-type=module - <<'EOF'
+  node --input-type=module - <<'EOF' >&2
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const runPath = process.env.RUN_JSON;
@@ -78,6 +76,9 @@ run.outcome = run.outcome || {};
 run.outcome.previewUrl = previewUrl;
 run.outcome.previewAt = new Date().toISOString();
 writeFileSync(runPath, JSON.stringify(run, null, 2) + '\n');
-console.log(`Updated ${runPath} with previewUrl`);
+console.error(`Updated ${runPath} with previewUrl`);
 EOF
 fi
+
+# Stdout is only the URL (captured by CI for GITHUB_OUTPUT).
+echo "$PREVIEW_URL"

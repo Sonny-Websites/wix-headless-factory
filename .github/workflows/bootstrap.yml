@@ -82,10 +82,8 @@ jobs:
           console.log('Rendered .github/codex/prompts/bootstrap.rendered.md');
           EOF
 
-      - name: Reset Codex home config
-        run: |
-          # codex-action injects model_provider at runtime; a prior bootstrap may have committed it.
-          git checkout -- .github/codex/config.toml 2>/dev/null || true
+      - name: Restore pristine Codex config
+        run: bash scripts/restore-codex-config.sh
 
       - name: Run Codex with Wix Headless skill
         id: run_codex
@@ -119,10 +117,7 @@ jobs:
         env:
           WIX_CLI_API_KEY: ${{ secrets.WIX_CLI_API_KEY }}
           PROJECT_DIR: ${{ env.PROJECT_DIR }}
-        run: |
-          PREVIEW_URL="$(bash scripts/preview-to-wix.sh)"
-          echo "preview_url=$PREVIEW_URL" >> "$GITHUB_OUTPUT"
-          echo "Preview URL: $PREVIEW_URL"
+        run: bash scripts/run-preview-for-ci.sh
 
       - name: Record preview URL on main
         env:
@@ -143,10 +138,7 @@ jobs:
         env:
           WIX_CLI_API_KEY: ${{ secrets.WIX_CLI_API_KEY }}
           PROJECT_DIR: ${{ env.PROJECT_DIR }}
-        run: |
-          RELEASE_URL="$(bash scripts/release-to-wix.sh)"
-          echo "release_url=$RELEASE_URL" >> "$GITHUB_OUTPUT"
-          echo "Released to: $RELEASE_URL"
+        run: bash scripts/run-release-for-ci.sh
 
       - name: Record release URL on main
         if: inputs.deploy == true

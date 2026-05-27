@@ -7,17 +7,17 @@ wix_cli_authenticated() {
 }
 
 if wix_cli_authenticated; then
-  echo "verify-wix-auth.sh: Wix CLI session is active"
-  npx @wix/cli whoami
+  echo "verify-wix-auth.sh: Wix CLI session is active" >&2
+  npx @wix/cli whoami >&2
   exit 0
 fi
 
 if [[ -n "${WIX_CLI_API_KEY:-}" ]]; then
-  echo "verify-wix-auth.sh: logging in with WIX_CLI_API_KEY…"
+  echo "verify-wix-auth.sh: logging in with WIX_CLI_API_KEY…" >&2
   npx @wix/cli login --api-key "$WIX_CLI_API_KEY"
   if wix_cli_authenticated; then
-    echo "verify-wix-auth.sh: authenticated via API key"
-    npx @wix/cli whoami
+    echo "verify-wix-auth.sh: authenticated via API key" >&2
+    npx @wix/cli whoami >&2
     exit 0
   fi
   echo "verify-wix-auth.sh: login --api-key succeeded but whoami still fails" >&2

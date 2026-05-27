@@ -1,0 +1,13 @@
+# Codex home config for wix-headless-factory bootstrap runs.
+# Mounted via codex-action `codex-home` input.
+# Profile settings live in factory.config.toml (selected via --profile factory).
+#
+# Do not add model_provider or [model_providers.*] here — codex-action injects
+# those at runtime when openai-api-key is set. Committing them breaks the next run.
+
+# Optional Wix MCP for documentation search (site ops use @wix/cli + curl per the skill).
+# Uncomment if you configure Wix MCP credentials for documentation search.
+#
+# [mcp_servers.wix]
+# command = "npx"
+# args = ["-y", "@wix/wix-mcp-remote@latest"]

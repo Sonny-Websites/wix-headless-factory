@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Deprecated: edit workflow uses stage-site-edits.sh + create-pull-request in CI.
+# Deprecated: edit workflow uses stage-site-edits.sh + commit-staged-edit-pr.sh in CI.
 # Kept for local use — stages, commits, and pushes the current branch only.
 set -euo pipefail
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Stage Codex site edits for peter-evans/create-pull-request (excludes ephemeral paths).
+# Stage Codex site edits for commit-staged-edit-pr.sh (excludes ephemeral paths).
 set -euo pipefail
 
 if [[ -z "$(git status --porcelain)" ]]; then
@@ -11,7 +11,16 @@ git add -A
 git reset -q .github/codex/.bootstrap-context.json 2>/dev/null || true
 git reset -q .github/codex/.edit-context.json 2>/dev/null || true
 git reset -q .github/codex/config.toml 2>/dev/null || true
+git reset -q .github/codex/config.toml.template 2>/dev/null || true
 git reset -q .github/codex/*.json 2>/dev/null || true
+git reset -q .github/codex/*.sqlite 2>/dev/null || true
+git reset -q .github/codex/*.sqlite-shm 2>/dev/null || true
+git reset -q .github/codex/*.sqlite-wal 2>/dev/null || true
+git reset -q .github/codex/goals_*.sqlite 2>/dev/null || true
+git reset -q .github/codex/logs_*.sqlite 2>/dev/null || true
+git reset -q .github/codex/state_*.sqlite 2>/dev/null || true
+git reset -q .github/codex/state_*.sqlite-shm 2>/dev/null || true
+git reset -q .github/codex/state_*.sqlite-wal 2>/dev/null || true
 git reset -q .github/codex/sessions/ 2>/dev/null || true
 git reset -q .skills/ 2>/dev/null || true
 git reset -q .github/codex/prompts/bootstrap.rendered.md 2>/dev/null || true
