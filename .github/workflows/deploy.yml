@@ -1,10 +1,10 @@
-name: Deploy Wix Headless Site
+name: Deploy Wix Headless Site (production)
 
 on:
   workflow_dispatch:
     inputs:
       project_dir:
-        description: Path to Wix Headless project root (default `site`)
+        description: Path to Wix Headless project root (default `site`). Run after approving a preview.
         required: false
         type: string
         default: "site"
@@ -82,7 +82,9 @@ jobs:
           RELEASE_URL: ${{ steps.release.outputs.release_url }}
         run: |
           {
-            echo "## Wix Headless deploy"
+            echo "## Wix Headless production release"
+            echo ""
+            echo "Promotes the built project to the live site (`wix release`)."
             echo ""
             if [[ -n "$RELEASE_URL" ]]; then
               echo "**Live URL:** $RELEASE_URL"

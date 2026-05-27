@@ -71,14 +71,31 @@ Store the key as org or repo secret `WIX_CLI_API_KEY`. No self-hosted runner req
 5. Commits generated project files and pushes (site always lives in `./site/`)
 6. Optionally installs deps and runs `scripts/release-to-wix.sh` with `PROJECT_DIR=site` when `deploy=true`
 
-### Deploy (`deploy.yml`)
+### Edit and preview (`edit-and-preview.yml`)
+
+**Trigger:** `workflow_dispatch`  
+**Runner:** `ubuntu-latest`
+
+| Input | Required | Description |
+| --- | --- | --- |
+| `edit_prompt` | yes | Natural-language description of changes to make |
+| `project_dir` | no | Wix project path (default `site`) |
+
+**What it does:**
+
+1. Runs Codex against the existing `./site/` project (no re-scaffold)
+2. Commits edits on branch `edit/{run_id}`, opens a PR, and **merges to `main`**
+3. Builds and runs [`wix preview`](https://dev.wix.com/docs/wix-cli/command-reference/project-commands/preview) — preview URL in job summary and `.wix/run.json`
+4. Share the preview URL with the reviewer
+
+### Deploy / release (`deploy.yml`)
 
 **Trigger:** `workflow_dispatch` or reusable `workflow_call`  
 **Runner:** `ubuntu-latest`
 
-Builds and releases an existing Wix Headless project (`npx @wix/cli build` → `npx @wix/cli release`).
+Run **after the reviewer approves the preview**. Builds and **releases to production** (`npx @wix/cli build` → `npx @wix/cli release`).
 
-Default **`project_dir`** is `site` (factory scaffold output). Override only if you moved the project.
+Default **`project_dir`** is `site`. Override only if you moved the project.
 
 ## n8n integration
 
@@ -157,17 +174,23 @@ Codex reads **`AGENTS.md`** at repo root. Key CI behaviors:
 ├── AGENTS.md                          # Codex / Wix Headless CI rules
 ├── .github/
 │   ├── workflows/
-│   │   ├── bootstrap.yml              # n8n entry point
-│   │   └── deploy.yml                 # manual / post-bootstrap release
+│   │   ├── bootstrap.yml              # n8n entry point — new site
+│   │   ├── edit-and-preview.yml       # Codex edit → merge → wix preview
+│   │   └── deploy.yml                 # Production release (after preview approval)
 │   └── codex/
 │       ├── config.toml                # Codex base config
 │       ├── factory.config.toml        # `--profile factory` overlay
-│       └── prompts/bootstrap.md       # Bootstrap prompt template
+│       └── prompts/
+│           ├── bootstrap.md           # Bootstrap prompt template
+│           └── edit.md                # Site edit prompt template
 ├── scripts/
 │   ├── install-wix-headless-skill.sh
 │   ├── prepare-bootstrap-context.sh
 │   ├── verify-wix-auth.sh             # API key or existing session
 │   ├── commit-generated.sh
+│   ├── commit-edits.sh
+│   ├── prepare-edit-context.sh
+│   ├── preview-to-wix.sh
 │   └── release-to-wix.sh
 ├── .factory/                          # Automation metadata
 ├── site/                              # Wix Headless Astro project (created by bootstrap)

@@ -67,13 +67,13 @@ fi
 
 echo "$RELEASE_URL"
 
-# Append release URL to run.json if present
-export RELEASE_URL
-if [[ -f .wix/run.json ]]; then
+# Append release URL to run.json at repo root if present
+export RELEASE_URL RUN_JSON="${RUN_JSON:-$(cd "$(dirname "$0")/.." && pwd)/.wix/run.json}"
+if [[ -f "$RUN_JSON" ]]; then
   node --input-type=module - <<'EOF'
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const runPath = '.wix/run.json';
+const runPath = process.env.RUN_JSON;
 const releaseUrl = process.env.RELEASE_URL;
 let run;
 try {
@@ -85,6 +85,6 @@ run.outcome = run.outcome || {};
 run.outcome.releaseUrl = releaseUrl;
 run.outcome.releasedAt = new Date().toISOString();
 writeFileSync(runPath, JSON.stringify(run, null, 2) + '\n');
-console.log('Updated .wix/run.json with releaseUrl');
+console.log(`Updated ${runPath} with releaseUrl`);
 EOF
 fi

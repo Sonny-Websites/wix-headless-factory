@@ -21,8 +21,11 @@ dist/
 # Codex / CI artifacts
 .codex/
 .github/codex/.bootstrap-context.json
+.github/codex/.edit-context.json
 .github/codex/prompts/bootstrap.rendered.md
+.github/codex/prompts/edit.rendered.md
 .github/codex/bootstrap-output.md
+.github/codex/edit-output.md
 
 # OS / editor
 .DS_Store

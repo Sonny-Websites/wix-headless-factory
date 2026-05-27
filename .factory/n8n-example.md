@@ -73,7 +73,7 @@ Extract from bootstrap job summary or `.wix/run.json`:
 
 ## 3. Redeploy without rebuild
 
-Trigger deploy only:
+After a reviewer approves a **preview** from `edit-and-preview.yml`, release to production:
 
 ```
 POST /repos/{owner}/{repo}/actions/workflows/deploy.yml/dispatches
@@ -81,6 +81,20 @@ POST /repos/{owner}/{repo}/actions/workflows/deploy.yml/dispatches
 ```
 
 `project_dir` defaults to `site` if omitted.
+
+## 3b. Request a site edit + preview
+
+```
+POST /repos/{owner}/{repo}/actions/workflows/edit-and-preview.yml/dispatches
+{
+  "ref": "main",
+  "inputs": {
+    "edit_prompt": "Update the hero headline to 'Spring Collection' and add a featured products row."
+  }
+}
+```
+
+Poll the run; share `outcome.previewUrl` from `.wix/run.json` or the job summary. When approved, dispatch `deploy.yml` (section 3).
 
 ## 4. Prompt tips for n8n
 
