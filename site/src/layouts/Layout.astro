@@ -33,14 +33,27 @@ const { title = "test" } = Astro.props;
 </html>
 
 <style>
+  :global(:root) {
+    --pink-050: #fff3f9;
+    --pink-100: #ffe6f2;
+    --pink-200: #ffcde4;
+    --pink-400: #ef5f9b;
+    --pink-700: #8f1f54;
+    --text-strong: #4e1a33;
+  }
+
   :global(html),
   :global(body) {
     margin: 0;
     width: 100%;
     min-height: 100%;
     font-family: "Trebuchet MS", sans-serif;
-    background: #f8f8f6;
-    color: #1f2421;
+    background: linear-gradient(180deg, var(--pink-050) 0%, var(--pink-100) 100%);
+    color: var(--text-strong);
+  }
+
+  :global(a) {
+    color: var(--pink-700);
   }
 
   .container {
@@ -50,8 +63,8 @@ const { title = "test" } = Astro.props;
   }
 
   .site-header {
-    border-bottom: 1px solid #d8ddd7;
-    background: #ffffff;
+    border-bottom: 1px solid var(--pink-200);
+    background: rgba(255, 255, 255, 0.9);
     margin-bottom: 2rem;
   }
 
@@ -64,7 +77,7 @@ const { title = "test" } = Astro.props;
 
   .brand {
     text-decoration: none;
-    color: #1f2421;
+    color: var(--pink-700);
     font-weight: 700;
     letter-spacing: 0.02em;
   }
@@ -75,11 +88,12 @@ const { title = "test" } = Astro.props;
   }
 
   nav a {
-    color: #1f2421;
+    color: var(--text-strong);
     text-decoration: none;
   }
 
   nav a:hover {
+    color: var(--pink-400);
     text-decoration: underline;
   }
 </style>

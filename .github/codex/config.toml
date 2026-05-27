@@ -1,3 +1,7 @@
+# Added by codex-action.
+model_provider = "codex-action-responses-proxy"
+
+
 # Codex home config for wix-headless-factory bootstrap runs.
 # Mounted via codex-action `codex-home` input.
 # Profile settings live in factory.config.toml (selected via --profile factory).
@@ -11,3 +15,13 @@
 # [mcp_servers.wix]
 # command = "npx"
 # args = ["-y", "@wix/wix-mcp-remote@latest"]
+
+
+# Added by codex-action.
+[model_providers.codex-action-responses-proxy]
+name = "Codex Action Responses Proxy"
+base_url = "http://127.0.0.1:40755/v1"
+wire_api = "responses"
+
+[projects."/home/runner/work/wix-headless-factory/wix-headless-factory"]
+trust_level = "trusted"
