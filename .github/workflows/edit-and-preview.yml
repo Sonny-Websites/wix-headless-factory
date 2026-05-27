@@ -74,6 +74,10 @@ jobs:
           console.log('Rendered .github/codex/prompts/edit.rendered.md');
           EOF
 
+      - name: Reset Codex home config
+        run: |
+          git checkout -- .github/codex/config.toml 2>/dev/null || true
+
       - name: Run Codex site edit
         id: run_codex
         uses: openai/codex-action@v1

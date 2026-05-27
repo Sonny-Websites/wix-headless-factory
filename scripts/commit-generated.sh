@@ -15,6 +15,8 @@ git config user.email "${GIT_USER_EMAIL:-41898282+github-actions[bot]@users.nore
 
 git add -A
 git reset -q .github/codex/.bootstrap-context.json 2>/dev/null || true
+git reset -q .github/codex/config.toml 2>/dev/null || true
+git reset -q .github/codex/*.json 2>/dev/null || true
 git reset -q .skills/ 2>/dev/null || true
 
 if [[ -z "$(git diff --cached --name-only)" ]]; then

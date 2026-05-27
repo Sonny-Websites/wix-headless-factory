@@ -17,6 +17,8 @@ git config user.email "${GIT_USER_EMAIL:-41898282+github-actions[bot]@users.nore
 git add -A
 git reset -q .github/codex/.bootstrap-context.json 2>/dev/null || true
 git reset -q .github/codex/.edit-context.json 2>/dev/null || true
+git reset -q .github/codex/config.toml 2>/dev/null || true
+git reset -q .github/codex/*.json 2>/dev/null || true
 git reset -q .skills/ 2>/dev/null || true
 git reset -q .github/codex/prompts/bootstrap.rendered.md 2>/dev/null || true
 git reset -q .github/codex/prompts/edit.rendered.md 2>/dev/null || true

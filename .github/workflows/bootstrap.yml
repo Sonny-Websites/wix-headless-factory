@@ -82,6 +82,11 @@ jobs:
           console.log('Rendered .github/codex/prompts/bootstrap.rendered.md');
           EOF
 
+      - name: Reset Codex home config
+        run: |
+          # codex-action injects model_provider at runtime; a prior bootstrap may have committed it.
+          git checkout -- .github/codex/config.toml 2>/dev/null || true
+
       - name: Run Codex with Wix Headless skill
         id: run_codex
         uses: openai/codex-action@v1

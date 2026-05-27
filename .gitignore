@@ -26,6 +26,7 @@ dist/
 .github/codex/prompts/edit.rendered.md
 .github/codex/bootstrap-output.md
 .github/codex/edit-output.md
+.github/codex/*.json
 
 # OS / editor
 .DS_Store
