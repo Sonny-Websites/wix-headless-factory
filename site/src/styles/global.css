@@ -3,12 +3,17 @@
 :root {
   --page-max: 1120px;
   --reading-max: 780px;
+  --color-background: #fff2f8;
+  --color-text: #4f213c;
+  --color-muted: #8a4b6c;
+  --color-border: #f3bdd6;
+  --color-surface: #ffffff;
 }
 
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  background: radial-gradient(circle at 90% 0%, #e9f4ef 0%, var(--color-background) 42%);
+  background: radial-gradient(circle at 90% 0%, #ffd6e9 0%, var(--color-background) 42%);
   color: var(--color-text);
   font-family: var(--font-body);
   line-height: 1.55;
@@ -61,7 +66,7 @@ main {
   margin-top: 1rem;
   padding: clamp(2rem, 5vw, 4rem);
   border-radius: var(--radius-card);
-  background: linear-gradient(145deg, #ffffff, #ecf6f1);
+  background: linear-gradient(145deg, #fff9fc, #ffe4f0);
   border: 1px solid var(--color-border);
 }
 
