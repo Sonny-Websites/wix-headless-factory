@@ -11,15 +11,6 @@ on:
         description: Full natural-language site brief (passed from n8n)
         required: true
         type: string
-      site_slug:
-        description: Optional scaffold slug override (lowercase alnum, 3-20 chars)
-        required: false
-        type: string
-      deploy:
-        description: Release to Wix after successful build
-        required: false
-        type: boolean
-        default: false
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
@@ -38,15 +29,12 @@ jobs:
     env:
       SITE_NAME: ${{ inputs.site_name }}
       SITE_PROMPT: ${{ inputs.site_prompt }}
-      SITE_SLUG: ${{ inputs.site_slug }}
-      DEPLOY: ${{ inputs.deploy }}
       CI: "true"
       TRIGGERED_BY: ${{ github.actor }}
       RUN_ID: ${{ github.run_id }}
     outputs:
       final_message: ${{ steps.run_codex.outputs.final-message }}
       preview_url: ${{ steps.preview.outputs.preview_url }}
-      release_url: ${{ steps.release.outputs.release_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -78,14 +66,12 @@ jobs:
           let prompt = readFileSync('.github/codex/prompts/bootstrap.md', 'utf8');
           prompt = prompt
             .replaceAll('{{SITE_NAME}}', ctx.siteName)
-            .replaceAll('{{SITE_SLUG}}', ctx.slug)
-            .replaceAll('{{SITE_PROMPT}}', ctx.sitePrompt)
-            .replaceAll('{{DEPLOY}}', String(ctx.deploy));
+            .replaceAll('{{SITE_PROMPT}}', ctx.sitePrompt);
           writeFileSync('.github/codex/prompts/bootstrap.rendered.md', prompt);
           console.log('Rendered .github/codex/prompts/bootstrap.rendered.md');
           EOF
 
-      - name: Restore pristine Codex config
+      - name: Generate Codex config from template
         run: bash scripts/restore-codex-config.sh
 
       - name: Run Codex with Wix Headless skill
@@ -135,28 +121,6 @@ jobs:
             git push origin HEAD
           fi
 
-      - name: Release to Wix
-        id: release
-        if: inputs.deploy == true
-        env:
-          WIX_CLI_API_KEY: ${{ secrets.WIX_CLI_API_KEY }}
-          PROJECT_DIR: ${{ env.PROJECT_DIR }}
-        run: bash scripts/run-release-for-ci.sh
-
-      - name: Record release URL on main
-        if: inputs.deploy == true
-        env:
-          GIT_USER_NAME: github-actions[bot]
-          GIT_USER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
-        run: |
-          git add .wix/run.json 2>/dev/null || true
-          if git diff --cached --quiet; then
-            echo "No run.json changes to commit"
-          else
-            git commit -m "Record Wix release URL (run ${{ github.run_id }})"
-            git push origin HEAD
-          fi
-
       - name: Upload bootstrap artifacts
         if: always()
         uses: actions/upload-artifact@v7
@@ -181,7 +145,8 @@ jobs:
       - name: Notify n8n webhook
         continue-on-error: true
         env:
-          N8N_WEBHOOK_URL: ${{ secrets.N8N_WEBHOOK_URL }}
+          N8N_WEBHOOK_URL_TEST: ${{ secrets.N8N_WEBHOOK_URL_TEST }}
+          N8N_WEBHOOK_URL_PROD: ${{ secrets.N8N_WEBHOOK_URL_PROD }}
           N8N_WEBHOOK_SECRET: ${{ secrets.N8N_WEBHOOK_SECRET }}
           WEBHOOK_EVENT: bootstrap.completed
           JOB_RESULT: ${{ needs.bootstrap.result }}
@@ -193,11 +158,8 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           SITE_NAME: ${{ inputs.site_name }}
           SITE_PROMPT: ${{ inputs.site_prompt }}
-          SITE_SLUG: ${{ inputs.site_slug }}
-          DEPLOY: ${{ inputs.deploy }}
           PROJECT_DIR: site
           PREVIEW_URL: ${{ needs.bootstrap.outputs.preview_url }}
-          RELEASE_URL: ${{ needs.bootstrap.outputs.release_url }}
           FINAL_MESSAGE: ${{ needs.bootstrap.outputs.final_message }}
         run: bash scripts/notify-webhook.sh
 
@@ -205,27 +167,24 @@ jobs:
         env:
           FINAL_MESSAGE: ${{ needs.bootstrap.outputs.final_message }}
           PREVIEW_URL: ${{ needs.bootstrap.outputs.preview_url }}
-          RELEASE_URL: ${{ needs.bootstrap.outputs.release_url }}
         run: |
+          USER_SUMMARY="$(bash scripts/render-user-summary.sh 2>/dev/null || true)"
           {
             echo "## Wix Headless bootstrap"
             echo ""
             echo "| Input | Value |"
             echo "| --- | --- |"
             echo "| Site name | ${{ inputs.site_name }} |"
-            echo "| Deploy | ${{ inputs.deploy }} |"
             echo "| Run | ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} |"
+            if [[ -n "$USER_SUMMARY" ]]; then
+              echo ""
+              echo "### Your site"
+              echo "$USER_SUMMARY"
+            fi
             if [[ -n "$PREVIEW_URL" ]]; then
               echo ""
-              echo "**Preview URL:** $PREVIEW_URL"
-            fi
-            if [[ -n "$RELEASE_URL" ]]; then
+              echo "**Preview:** $PREVIEW_URL"
               echo ""
-              echo "**Live URL:** $RELEASE_URL"
-            fi
-            if [[ -n "$FINAL_MESSAGE" ]]; then
-              echo ""
-              echo "### Codex final message"
-              echo "$FINAL_MESSAGE"
+              echo "When approved, run **Deploy Wix Headless Site (production)** to publish live."
             fi
           } >> "$GITHUB_STEP_SUMMARY"

@@ -1,5 +1,5 @@
 # Bootstrap prompt — rendered by GitHub Actions before Codex runs.
-# Placeholders {{SITE_NAME}}, {{SITE_PROMPT}}, {{SITE_SLUG}}, {{DEPLOY}} are substituted by the workflow.
+# Placeholders {{SITE_NAME}} and {{SITE_PROMPT}} are substituted by the workflow.
 
 You are bootstrapping a new **Wix Managed Headless** site in this repository.
 
@@ -12,13 +12,10 @@ You are bootstrapping a new **Wix Managed Headless** site in this repository.
 ## Site inputs
 
 - **Site name (brand):** {{SITE_NAME}}
-- **Site slug (metadata):** {{SITE_SLUG}}
 - **Project directory (always):** `site/` — scaffold, build, and release use `./site/`
 - **Site prompt (full brief):**
 
 {{SITE_PROMPT}}
-
-- **Release after build:** {{DEPLOY}}
 
 ## Your task
 
@@ -30,8 +27,8 @@ Run the Wix Headless skill end-to-end for this site:
 4. Install inferred apps, seed content, design, wire components and pages.
 5. If you changed `package.json`, run `npm install` in `./site/` and commit `package-lock.json`.
 6. Run `npx @wix/cli build` in `./site/` — the build **must pass**.
-6. Write `.wix/run.json` with timing, verticals, and site metadata (CI will add preview/release URLs after your commit).
-7. Do **not** run `wix preview` or `wix release` — CI publishes a preview after bootstrap; production release runs only when **Release after build** is `true`.
+7. Write `.wix/run.json` with timing, verticals, site metadata, and `outcome.userSummary` — a plain-language description of what was built for the site owner (no CLI commands, file paths, or internal tooling). CI will add the preview URL after your commit.
+8. Do **not** run `wix preview` or `wix release` — CI publishes a preview after bootstrap; production release uses the separate **Deploy** workflow.
 
 Follow **CI / non-interactive rules** in `AGENTS.md`: no `AskUserQuestion`, auto-approve the plan, use the provided site name as brand.
 

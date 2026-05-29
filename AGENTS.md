@@ -12,12 +12,11 @@ Before starting, read `.github/codex/.bootstrap-context.json`. It contains:
 | `sitePrompt` | Full site brief (from n8n `site_prompt` input) |
 | `slug` | Metadata slug derived from `siteName` (run.json / Wix identifiers) |
 | `projectDir` | Always `site` — scaffold, build, and release use `./site/` |
-| `deploy` | If `true`, release to Wix after a successful build |
 | `ci` | Always `true` in this repo — enables non-interactive rules below |
 | `skillRoot` | Path to installed skill (`.skills/wix-headless`) |
 | `skillEntry` | Read this first: `.skills/wix-headless/SKILL.md` |
 
-Environment variables mirror the context file: `SITE_NAME`, `SITE_PROMPT`, `SITE_SLUG`, `PROJECT_DIR` (`site`), `CI=true`.
+Environment variables mirror the context file: `SITE_NAME`, `SITE_PROMPT`, `PROJECT_DIR` (`site`), `CI=true`.
 
 ## Skill entry
 
@@ -76,18 +75,18 @@ Known app IDs (for verification): `references/commands/known-apps.json`.
 Follow the skill's canonical pipeline:
 
 ```
-Discovery (CI overrides) → Setup → Seed → ORCHESTRATION → Build → [CI: Preview] → [Release if deploy]
+Discovery (CI overrides) → Setup → Seed → ORCHESTRATION → Build → [CI: Preview]
 ```
 
 Critical checkpoints:
 
 1. **Pre-flight** — `npx @wix/cli whoami` must pass before scaffold (CI logs in with API key in a prior workflow step).
-2. **Scaffold** — `bash .skills/wix-headless/scripts/scaffold.sh "$siteName"` (or legacy two-arg form). Creates **`./site/`** with `--site-template blank` and `--skip-git` per [create headless](https://dev.wix.com/docs/wix-cli/command-reference/project-creation/create-headless).
+2. **Scaffold** — `bash .skills/wix-headless/scripts/scaffold.sh "$siteName"`. Creates **`./site/`** with `--site-template blank` and `--skip-git` per [create headless](https://dev.wix.com/docs/wix-cli/command-reference/project-creation/create-headless).
 3. **Setup** — patch `.wix/site.json`, install inferred apps, env pull, `npm install` in `./site/`.
 4. **Seed + Orchestration** — full skill flow through components, pages, images.
 5. **Build** — if `package.json` changed, run `npm install` in `./site/` and commit `package-lock.json`; then `npx @wix/cli build` must exit 0 before commit.
 6. **Preview** (CI after commit) — `PROJECT_DIR=site bash scripts/preview-to-wix.sh`; capture stdout as preview URL. Do not run preview in Codex.
-7. **Release** (CI only if `deploy: true`) — `PROJECT_DIR=site bash scripts/release-to-wix.sh`; capture stdout as live URL.
+7. **Release** — use the separate **Deploy** workflow (`scripts/release-to-wix.sh`); do not release during bootstrap.
 
 Write **`.wix/run.json`** at end of run per `references/shared/RETURN_CONTRACT.md`.
 
@@ -129,7 +128,9 @@ Do **not** commit `.skills/` or `.github/codex/.bootstrap-context.json` — CI h
 
 ## Final message contract
 
-End with a fenced JSON block (last content in message):
+End with a fenced JSON block (last content in message). Put the **user-facing site summary** in `data.userSummary` and mirror it in `.wix/run.json` as `outcome.userSummary`.
+
+**`userSummary` rules:** 2–4 sentences for the site owner. Describe pages, content, features, and design in plain language. Do **not** mention CLI commands, file paths, package names, commits, builds, or other internal tooling.
 
 ```json
 {
@@ -140,6 +141,7 @@ End with a fenced JSON block (last content in message):
     "siteName": "...",
     "slug": "...",
     "verticals": ["stores", "cms"],
+    "userSummary": "Your new Bloom & Root site includes a warm hero, shop pages for serums and moisturizers, an about page, and a contact form.",
     "previewUrl": "https://…",
     "dashboardUrl": "https://manage.wix.com/dashboard/…"
   },

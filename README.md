@@ -5,7 +5,7 @@ Reusable bootstrap template for spinning up **Wix Managed Headless** sites from 
 Each cloned repo gets:
 
 - **`AGENTS.md`** — Codex / agent rules with CI overrides for the [Wix Headless skill](https://www.wix-headless.dev/skill.md)
-- **Bootstrap workflow** — runs Codex against the skill, scaffolds the project, builds, commits, publishes a Wix preview, optionally releases
+- **Bootstrap workflow** — runs Codex against the skill, scaffolds the project, builds, commits, publishes a Wix preview
 - **Deploy workflow** — build + release on demand via GitHub-hosted runners
 
 ## Architecture
@@ -25,7 +25,7 @@ flowchart LR
   gha -->|WIX_CLI_API_KEY| codex
   codex -->|scaffold build commit| repo
   gha -->|wix preview| wix
-  gha -->|optional release| wix
+  gha -->|deploy workflow release| wix
 ```
 
 ## Prerequisites
@@ -37,7 +37,8 @@ flowchart LR
 | `OPENAI_API_KEY` | Codex CLI via [openai/codex-action](https://github.com/openai/codex-action) |
 | `WIX_CLI_API_KEY` | Wix CLI auth for scaffold, build, and release in CI |
 | `GH_TOKEN` | PAT (or fine-grained token) with `contents` + `pull-requests` write — required for **Edit and preview** to open and merge PRs ([`GITHUB_TOKEN` cannot create PRs](https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#permissions-for-the-github_token) in many repos) |
-| `N8N_WEBHOOK_URL` | Optional — n8n Webhook trigger URL; workflows POST on completion |
+| `N8N_WEBHOOK_URL_TEST` | Optional — n8n Webhook trigger URL (test); workflows POST on completion |
+| `N8N_WEBHOOK_URL_PROD` | Optional — n8n Webhook trigger URL (production); workflows POST on completion |
 | `N8N_WEBHOOK_SECRET` | Optional — sent as `X-Webhook-Secret` for n8n auth |
 
 ### Wix API key
@@ -63,8 +64,6 @@ Store the key as org or repo secret `WIX_CLI_API_KEY`. No self-hosted runner req
 | --- | --- | --- |
 | `site_name` | yes | Brand / display name (from n8n) |
 | `site_prompt` | yes | Full site brief — Codex infers Stores/CMS/Blog/Forms from this |
-| `site_slug` | no | Metadata slug override (`^[a-z0-9]{3,20}$`); does **not** change project folder |
-| `deploy` | no | Release to production after preview (default `false`) |
 
 **What it does:**
 
@@ -73,8 +72,9 @@ Store the key as org or repo secret `WIX_CLI_API_KEY`. No self-hosted runner req
 3. Writes `.github/codex/.bootstrap-context.json` from inputs
 4. Runs Codex (`openai/codex-action@v1`) with `AGENTS.md` + skill instructions
 5. Commits generated project files and pushes (site always lives in `./site/`)
-6. Builds and runs `scripts/preview-to-wix.sh` — preview URL in job summary, webhook, and `.wix/run.json`
-7. Optionally runs `scripts/release-to-wix.sh` when `deploy=true` (production live URL)
+6. Builds and runs `scripts/preview-to-wix.sh` — preview URL and a plain-language **Your site** summary in the job summary, webhook (`userSummary`), and `.wix/run.json`
+
+Production release is a separate step — run **Deploy** after approving the preview.
 
 ### Edit and preview (`edit-and-preview.yml`)
 
@@ -90,7 +90,7 @@ Store the key as org or repo secret `WIX_CLI_API_KEY`. No self-hosted runner req
 
 1. Runs Codex against the existing `./site/` project (no re-scaffold)
 2. Commits **only staged** site changes, opens a PR with `GH_TOKEN`, then **merges to `main`**
-3. Builds and runs [`wix preview`](https://dev.wix.com/docs/wix-cli/command-reference/project-commands/preview) — preview URL in job summary and `.wix/run.json`
+3. Builds and runs [`wix preview`](https://dev.wix.com/docs/wix-cli/command-reference/project-commands/preview) — preview URL and a plain-language **What changed** summary in the job summary, webhook (`userSummary`), and `.wix/run.json`
 4. Share the preview URL with the reviewer
 
 ### Deploy / release (`deploy.yml`)
@@ -119,8 +119,7 @@ Content-Type: application/json
   "ref": "main",
   "inputs": {
     "site_name": "Bloom & Root",
-    "site_prompt": "Build a modern skincare ecommerce store with hero, about, and contact form. Warm minimal aesthetic, sell serums and moisturizers online.",
-    "deploy": "true"
+    "site_prompt": "Build a modern skincare ecommerce store with hero, about, and contact form. Warm minimal aesthetic, sell serums and moisturizers online."
   }
 }
 ```
@@ -132,7 +131,7 @@ Content-Type: application/json
 - Headers: `Authorization: Bearer {{$credentials.githubToken}}`, `Accept: application/vnd.github+json`
 - Body (JSON): map your site name and prompt fields to `inputs.site_name` and `inputs.site_prompt`
 
-**On completion (recommended):** set `N8N_WEBHOOK_URL` on the repo. Each workflow POSTs a JSON payload (`bootstrap.completed`, `edit.completed`, or `deploy.completed`) with `jobResult`, `repoName`, `runUrl`, and `outcome.previewUrl` / `outcome.releaseUrl`. Use an n8n **Webhook** trigger instead of polling.
+**On completion (recommended):** set `N8N_WEBHOOK_URL_TEST` and/or `N8N_WEBHOOK_URL_PROD` on the repo. Each workflow POSTs the same JSON payload to every configured URL (`bootstrap.completed`, `edit.completed`, or `deploy.completed`) with `jobResult`, `repoName`, `runUrl`, and `outcome.previewUrl` / `outcome.releaseUrl`. Failed deliveries retry up to 3 times with backoff. Use an n8n **Webhook** trigger instead of polling.
 
 Poll run status (fallback):
 
@@ -140,7 +139,7 @@ Poll run status (fallback):
 GET /repos/{owner}/{repo}/actions/runs?event=workflow_dispatch
 ```
 
-After success, read URLs from the webhook body, job summary, or `.wix/run.json`.
+After success, read URLs and `userSummary` from the webhook body, job summary, or `.wix/run.json` (`outcome.userSummary`).
 
 See [`.factory/n8n-example.md`](.factory/n8n-example.md) for a step-by-step n8n checklist.
 
@@ -158,8 +157,10 @@ bash scripts/install-wix-headless-skill.sh
 # Prepare context (simulates workflow inputs)
 SITE_NAME="Acme Coffee" \
 SITE_PROMPT="Coffee roastery online store, sell beans and subscriptions" \
-DEPLOY=false \
 bash scripts/prepare-bootstrap-context.sh
+
+# Generate Codex config (required before local Codex runs)
+bash scripts/restore-codex-config.sh
 ```
 
 Codex bootstrap is intended to run in CI; local runs need `OPENAI_API_KEY` and Wix CLI auth.
@@ -185,8 +186,7 @@ Codex reads **`AGENTS.md`** at repo root. Key CI behaviors:
 │   │   ├── edit-and-preview.yml       # Codex edit → merge → wix preview
 │   │   └── deploy.yml                 # Production release (after preview approval)
 │   └── codex/
-│       ├── config.toml                # Codex base config
-│       ├── config.toml.template       # CI restores this before each Codex run
+│       ├── config.toml.template       # Source of truth; CI generates config.toml
 │       ├── factory.config.toml        # `--profile factory` overlay
 │       └── prompts/
 │           ├── bootstrap.md           # Bootstrap prompt template
@@ -196,10 +196,13 @@ Codex reads **`AGENTS.md`** at repo root. Key CI behaviors:
 │   ├── prepare-bootstrap-context.sh
 │   ├── verify-wix-auth.sh             # API key or existing session
 │   ├── ensure-wix-env.sh              # wix env pull before build (CI)
+│   ├── restore-codex-config.sh        # Generate config.toml from template
 │   ├── commit-generated.sh
-│   ├── commit-edits.sh
+│   ├── stage-site-edits.sh
+│   ├── commit-staged-edit-pr.sh
 │   ├── prepare-edit-context.sh
 │   ├── preview-to-wix.sh
+│   ├── render-user-summary.sh         # Plain-language site summary for job summary + webhook
 │   ├── notify-webhook.sh
 │   └── release-to-wix.sh
 ├── .factory/                          # Automation metadata

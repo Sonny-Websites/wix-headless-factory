@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Restore pristine .github/codex/config.toml (never commit codex-action proxy blocks).
+# Generate .github/codex/config.toml from config.toml.template (never commit codex-action proxy blocks).
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"

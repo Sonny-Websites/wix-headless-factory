@@ -80,7 +80,8 @@ jobs:
       - name: Notify n8n webhook
         continue-on-error: true
         env:
-          N8N_WEBHOOK_URL: ${{ secrets.N8N_WEBHOOK_URL }}
+          N8N_WEBHOOK_URL_TEST: ${{ secrets.N8N_WEBHOOK_URL_TEST }}
+          N8N_WEBHOOK_URL_PROD: ${{ secrets.N8N_WEBHOOK_URL_PROD }}
           N8N_WEBHOOK_SECRET: ${{ secrets.N8N_WEBHOOK_SECRET }}
           WEBHOOK_EVENT: deploy.completed
           JOB_RESULT: ${{ needs.deploy.result }}

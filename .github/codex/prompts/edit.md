@@ -26,21 +26,24 @@ You are editing an existing **Wix Managed Headless** site in this repository.
 3. Implement the edit request: update components, pages, CMS content, styles, or config as needed.
 4. Run `npm install` in `./site/` if dependencies changed.
 5. Run `npx @wix/cli build` in `./site/` — the build **must pass**.
-6. Update `.wix/run.json` with edit metadata (timestamp, brief summary of changes).
+6. Update `.wix/run.json` with edit metadata (timestamp) and `outcome.userSummary` — a plain-language description of what changed for the site owner (no CLI commands, file paths, or internal tooling).
 7. Do **not** run `wix preview` or `wix release` — CI publishes a preview after your commit.
 
 Follow **CI / non-interactive rules** in `AGENTS.md`: no `AskUserQuestion`, proceed without interactive approval.
 
 Do **not** use WixSiteBuilder MCP. Use `@wix/cli` + `curl` for Wix API operations per the skill.
 
-When finished, end with a short summary of changes and a fenced JSON block:
+When finished, end with a fenced JSON block (include `data.userSummary` per `AGENTS.md`):
 
 ```json
 {
   "status": "complete" | "partial" | "failed",
   "phase": "edit",
   "summary": "one-line outcome",
-  "data": { "projectDir": "site" },
+  "data": {
+    "projectDir": "site",
+    "userSummary": "Updated the homepage hero headline and added a featured products row below it."
+  },
   "errors": []
 }
 ```

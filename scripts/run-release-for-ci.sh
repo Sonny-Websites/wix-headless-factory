@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run release-to-wix.sh and set the release_url job output (bootstrap deploy + deploy workflow).
+# Run release-to-wix.sh and set the release_url job output (deploy workflow).
 set -euo pipefail
 
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

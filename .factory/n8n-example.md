@@ -6,7 +6,7 @@ Checklist for wiring n8n to clone this template and bootstrap a Wix Headless sit
 
 - [ ] Publish `wix-headless-factory` as a GitHub template repository
 - [ ] Org secrets: `OPENAI_API_KEY`, `WIX_CLI_API_KEY`
-- [ ] Optional: `N8N_WEBHOOK_URL` (+ `N8N_WEBHOOK_SECRET`) on each site repo for completion callbacks
+- [ ] Optional: `N8N_WEBHOOK_URL_TEST` and/or `N8N_WEBHOOK_URL_PROD` (+ `N8N_WEBHOOK_SECRET`) on each site repo for completion callbacks
 - [ ] Wix API key in [API Keys Manager](https://manage.wix.com/account/api-keys) with **Wix CLI - Git Integration** (+ Stores/CMS/etc. if bootstrap needs them)
 
 No self-hosted runner required — workflows use `ubuntu-latest`.
@@ -38,8 +38,7 @@ POST /repos/{owner}/{repo}/actions/workflows/bootstrap.yml/dispatches
   "ref": "main",
   "inputs": {
     "site_name": "{{ $json.siteName }}",
-    "site_prompt": "{{ $json.sitePrompt }}",
-    "deploy": "{{ $json.deployImmediately ? 'true' : 'false' }}"
+    "site_prompt": "{{ $json.sitePrompt }}"
   }
 }
 ```
@@ -50,11 +49,10 @@ Map n8n fields:
 | --- | --- |
 | Customer / brand name | `site_name` |
 | Full creative brief | `site_prompt` |
-| Go live immediately | `deploy` (`true` / `false`) |
 
 ### Node C — Wait for completion
 
-**Option A — Webhook (recommended):** add an n8n **Webhook** trigger. Copy the production URL into GitHub secret `N8N_WEBHOOK_URL` on the site repo. When a workflow finishes, Actions POSTs JSON:
+**Option A — Webhook (recommended):** add an n8n **Webhook** trigger. Copy the test and production URLs into GitHub secrets `N8N_WEBHOOK_URL_TEST` and `N8N_WEBHOOK_URL_PROD` on the site repo (either or both). When a workflow finishes, Actions POSTs the same JSON to each configured URL (with retries on failure):
 
 | Field | Meaning |
 | --- | --- |
@@ -65,7 +63,8 @@ Map n8n fields:
 | `repoName` | GitHub repo name only (e.g. `site-acme`) |
 | `runUrl` | Link to the Actions run |
 | `outcome.previewUrl` | After bootstrap or edit workflow |
-| `outcome.releaseUrl` | After bootstrap (`deploy=true`) or deploy workflow |
+| `outcome.releaseUrl` | After deploy workflow |
+| `userSummary` | Plain-language description of what was built or changed (no internal tooling) |
 | `inputs` | Workflow inputs (`siteName`, `editPrompt`, etc.) |
 | `runJson` | Full `.wix/run.json` when present |
 
@@ -86,6 +85,7 @@ When `status=completed`:
 
 Extract from bootstrap job summary or `.wix/run.json`:
 
+- `userSummary` — plain-language description of the site (also in job summary under **Your site**)
 - `outcome.previewUrl` / `outcome.releaseUrl`
 - `outcome.dashboardUrl`
 

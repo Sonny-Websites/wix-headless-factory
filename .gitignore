@@ -20,6 +20,7 @@ dist/
 
 # Codex / CI artifacts
 .codex/
+.github/codex/config.toml
 .github/codex/.bootstrap-context.json
 .github/codex/.edit-context.json
 .github/codex/prompts/bootstrap.rendered.md

@@ -1,4 +1,5 @@
-# Codex home config for wix-headless-factory bootstrap runs.
+# Codex home config template for wix-headless-factory bootstrap runs.
+# CI copies this to config.toml before each Codex run (see scripts/restore-codex-config.sh).
 # Mounted via codex-action `codex-home` input.
 # Profile settings live in factory.config.toml (selected via --profile factory).
 #

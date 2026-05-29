@@ -73,7 +73,7 @@ jobs:
           console.log('Rendered .github/codex/prompts/edit.rendered.md');
           EOF
 
-      - name: Restore pristine Codex config
+      - name: Generate Codex config from template
         run: bash scripts/restore-codex-config.sh
 
       - name: Run Codex site edit
@@ -155,7 +155,8 @@ jobs:
       - name: Notify n8n webhook
         continue-on-error: true
         env:
-          N8N_WEBHOOK_URL: ${{ secrets.N8N_WEBHOOK_URL }}
+          N8N_WEBHOOK_URL_TEST: ${{ secrets.N8N_WEBHOOK_URL_TEST }}
+          N8N_WEBHOOK_URL_PROD: ${{ secrets.N8N_WEBHOOK_URL_PROD }}
           N8N_WEBHOOK_SECRET: ${{ secrets.N8N_WEBHOOK_SECRET }}
           WEBHOOK_EVENT: edit.completed
           JOB_RESULT: ${{ needs.edit-and-preview.result }}
@@ -176,24 +177,25 @@ jobs:
           FINAL_MESSAGE: ${{ needs.edit-and-preview.outputs.final_message }}
           PREVIEW_URL: ${{ needs.edit-and-preview.outputs.preview_url }}
         run: |
+          USER_SUMMARY="$(bash scripts/render-user-summary.sh 2>/dev/null || true)"
           {
             echo "## Wix Headless edit + preview"
             echo ""
             echo "| Input | Value |"
             echo "| --- | --- |"
             echo "| Run | ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} |"
+            if [[ -n "$USER_SUMMARY" ]]; then
+              echo ""
+              echo "### What changed"
+              echo "$USER_SUMMARY"
+            fi
             if [[ -n "$PREVIEW_URL" ]]; then
               echo ""
-              echo "**Preview URL (share with reviewer):** $PREVIEW_URL"
+              echo "**Preview:** $PREVIEW_URL"
               echo ""
-              echo "When approved, run **Deploy Wix Headless Site (production)** to release live."
+              echo "When approved, run **Deploy Wix Headless Site (production)** to publish live."
             else
               echo ""
               echo "No preview URL was produced. Check the edit job logs."
-            fi
-            if [[ -n "$FINAL_MESSAGE" ]]; then
-              echo ""
-              echo "### Codex summary"
-              echo "$FINAL_MESSAGE"
             fi
           } >> "$GITHUB_STEP_SUMMARY"
