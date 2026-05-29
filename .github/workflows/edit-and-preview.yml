@@ -13,6 +13,9 @@ on:
         type: string
         default: site
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 concurrency:
   group: edit-${{ github.repository }}
   cancel-in-progress: false
@@ -38,12 +41,12 @@ jobs:
       pr_number: ${{ steps.commit_pr.outputs.pr_number }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "22"
 
@@ -130,7 +133,7 @@ jobs:
 
       - name: Upload edit artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: edit-${{ github.run_id }}
           path: |
@@ -145,7 +148,7 @@ jobs:
     if: always()
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 1
 

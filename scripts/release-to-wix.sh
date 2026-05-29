@@ -23,6 +23,7 @@ fi
 cd "$PROJECT_DIR"
 
 bash "$SCRIPTS_DIR/verify-wix-auth.sh"
+bash "$SCRIPTS_DIR/ensure-wix-env.sh"
 
 echo "Building…" >&2
 npx @wix/cli build 1>&2

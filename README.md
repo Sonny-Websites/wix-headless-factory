@@ -98,7 +98,7 @@ Store the key as org or repo secret `WIX_CLI_API_KEY`. No self-hosted runner req
 **Trigger:** `workflow_dispatch` or reusable `workflow_call`  
 **Runner:** `ubuntu-latest`
 
-Run **after the reviewer approves the preview**. Builds and **releases to production** (`npx @wix/cli build` → `npx @wix/cli release`).
+Run **after the reviewer approves the preview**. Builds and **releases to production** (`wix env pull` → `npx @wix/cli build` → `npx @wix/cli release`). Preview and release scripts pull `.env.local` from Wix in CI because it is not committed.
 
 Default **`project_dir`** is `site`. Override only if you moved the project.
 
@@ -132,7 +132,7 @@ Content-Type: application/json
 - Headers: `Authorization: Bearer {{$credentials.githubToken}}`, `Accept: application/vnd.github+json`
 - Body (JSON): map your site name and prompt fields to `inputs.site_name` and `inputs.site_prompt`
 
-**On completion (recommended):** set `N8N_WEBHOOK_URL` on the repo. Each workflow POSTs a JSON payload (`bootstrap.completed`, `edit.completed`, or `deploy.completed`) with `jobResult`, `runUrl`, and `outcome.previewUrl` / `outcome.releaseUrl`. Use an n8n **Webhook** trigger instead of polling.
+**On completion (recommended):** set `N8N_WEBHOOK_URL` on the repo. Each workflow POSTs a JSON payload (`bootstrap.completed`, `edit.completed`, or `deploy.completed`) with `jobResult`, `repoName`, `runUrl`, and `outcome.previewUrl` / `outcome.releaseUrl`. Use an n8n **Webhook** trigger instead of polling.
 
 Poll run status (fallback):
 
@@ -195,6 +195,7 @@ Codex reads **`AGENTS.md`** at repo root. Key CI behaviors:
 │   ├── install-wix-headless-skill.sh
 │   ├── prepare-bootstrap-context.sh
 │   ├── verify-wix-auth.sh             # API key or existing session
+│   ├── ensure-wix-env.sh              # wix env pull before build (CI)
 │   ├── commit-generated.sh
 │   ├── commit-edits.sh
 │   ├── prepare-edit-context.sh

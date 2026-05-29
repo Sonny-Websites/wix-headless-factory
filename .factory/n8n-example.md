@@ -60,6 +60,9 @@ Map n8n fields:
 | --- | --- |
 | `event` | `bootstrap.completed` \| `edit.completed` \| `deploy.completed` |
 | `jobResult` | `success` \| `failure` \| `cancelled` |
+| `repository` | Full GitHub repo (`owner/repo-name`) |
+| `repoOwner` | GitHub org or user |
+| `repoName` | GitHub repo name only (e.g. `site-acme`) |
 | `runUrl` | Link to the Actions run |
 | `outcome.previewUrl` | After bootstrap or edit workflow |
 | `outcome.releaseUrl` | After bootstrap (`deploy=true`) or deploy workflow |

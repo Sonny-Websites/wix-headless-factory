@@ -13,6 +13,11 @@ JOB_RESULT="${JOB_RESULT:-unknown}"
 RUN_JSON_PATH="${RUN_JSON_PATH:-.wix/run.json}"
 
 GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-}"
+REPO_OWNER="${GITHUB_REPOSITORY%%/*}"
+REPO_NAME="${GITHUB_REPOSITORY##*/}"
+if [[ "$REPO_OWNER" == "$GITHUB_REPOSITORY" ]]; then
+  REPO_OWNER=""
+fi
 GITHUB_RUN_ID="${GITHUB_RUN_ID:-}"
 GITHUB_RUN_URL="${GITHUB_RUN_URL:-}"
 GITHUB_REF_NAME="${GITHUB_REF_NAME:-}"
@@ -36,6 +41,8 @@ build_payload() {
     --arg event "$WEBHOOK_EVENT" \
     --arg jobResult "$JOB_RESULT" \
     --arg repository "$GITHUB_REPOSITORY" \
+    --arg repoOwner "$REPO_OWNER" \
+    --arg repoName "$REPO_NAME" \
     --arg runId "$GITHUB_RUN_ID" \
     --arg runUrl "$GITHUB_RUN_URL" \
     --arg ref "$GITHUB_REF_NAME" \
@@ -54,6 +61,8 @@ build_payload() {
       event: $event,
       jobResult: $jobResult,
       repository: $repository,
+      repoOwner: (if $repoOwner == "" then null else $repoOwner end),
+      repoName: (if $repoName == "" then null else $repoName end),
       runId: $runId,
       runUrl: $runUrl,
       ref: $ref,
