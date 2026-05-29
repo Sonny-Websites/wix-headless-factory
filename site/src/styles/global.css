@@ -134,3 +134,27 @@ a {
   padding: 1.5rem 0 2rem;
   color: var(--color-muted);
 }
+
+.fruit-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.fruit-item {
+  border: 1px solid #e5e7eb;
+  border-radius: var(--radius-md);
+  background: #fcfcfc;
+  padding: 1rem;
+}
+
+.fruit-item h3 {
+  margin: 0 0 0.5rem;
+}
+
+.fruit-item p {
+  margin: 0.25rem 0;
+}

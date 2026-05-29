@@ -1,5 +1,27 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import * as items from "@wix/wix-data-items-sdk";
+import { auth } from "@wix/essentials";
+
+type FruitItem = {
+  name: string;
+  color: string;
+  flavor: string;
+};
+
+let fruits: FruitItem[] = [];
+
+try {
+  const query = auth.elevate(items.query);
+  const { items: result } = await query("fruit").ascending("name").limit(50).find();
+  fruits = result.map((item: Record<string, unknown>) => ({
+    name: String(item.name ?? ""),
+    color: String(item.color ?? ""),
+    flavor: String(item.flavor ?? ""),
+  }));
+} catch (err) {
+  console.error("[home] CMS query failed:", err);
+}
 ---
 
 <Layout title="Test | Home" description="CMS-first marketing starter site.">
@@ -15,6 +37,27 @@ import Layout from "../layouts/Layout.astro";
         <a href="/about" class="button">Read About</a>
         <a href="/faq" class="button button-secondary">View FAQ</a>
       </div>
+    </section>
+    <section class="content">
+      <p class="eyebrow">CMS Collection</p>
+      <h2>Fruit</h2>
+      {
+        fruits.length === 0 ? (
+          <p class="lede">No fruit items found yet.</p>
+        ) : (
+          <ul class="fruit-list">
+            {fruits.map((fruit) => (
+              <li class="fruit-item">
+                <h3>{fruit.name}</h3>
+                <p>
+                  <strong>Color:</strong> {fruit.color}
+                </p>
+                <p>{fruit.flavor}</p>
+              </li>
+            ))}
+          </ul>
+        )
+      }
     </section>
   </main>
 </Layout>
