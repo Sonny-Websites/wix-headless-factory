@@ -131,7 +131,7 @@ Content-Type: application/json
 - Headers: `Authorization: Bearer {{$credentials.githubToken}}`, `Accept: application/vnd.github+json`
 - Body (JSON): map your site name and prompt fields to `inputs.site_name` and `inputs.site_prompt`
 
-**On completion (recommended):** set `N8N_WEBHOOK_URL_TEST` and/or `N8N_WEBHOOK_URL_PROD` on the repo. Each workflow POSTs the same JSON payload to every configured URL (`bootstrap.completed`, `edit.completed`, or `deploy.completed`) with `jobResult`, `repoName`, `runUrl`, and `outcome.previewUrl` / `outcome.releaseUrl`. Failed deliveries retry up to 3 times with backoff. Use an n8n **Webhook** trigger instead of polling.
+**On completion (recommended):** set `N8N_WEBHOOK_URL_TEST` and/or `N8N_WEBHOOK_URL_PROD` on the repo. Each workflow POSTs the same JSON payload to every configured URL (`bootstrap.completed`, `edit.completed`, or `deploy.completed`) with `jobResult`, `repoName`, `runUrl`, and `outcome.previewUrl` / `outcome.releaseUrl` / `outcome.dashboardUrl`. Failed deliveries retry up to 3 times with backoff. Use an n8n **Webhook** trigger instead of polling.
 
 Poll run status (fallback):
 

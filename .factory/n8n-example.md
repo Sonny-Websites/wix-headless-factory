@@ -64,6 +64,7 @@ Map n8n fields:
 | `runUrl` | Link to the Actions run |
 | `outcome.previewUrl` | After bootstrap or edit workflow |
 | `outcome.releaseUrl` | After deploy workflow |
+| `outcome.dashboardUrl` | Wix site dashboard (from agent output or `.wix/site.json`) |
 | `userSummary` | Plain-language description of what was built or changed (no internal tooling) |
 | `inputs` | Workflow inputs (`siteName`, `editPrompt`, etc.) |
 | `runJson` | Full `.wix/run.json` when present |

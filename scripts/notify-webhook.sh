@@ -41,11 +41,17 @@ PROJECT_DIR="${PROJECT_DIR:-site}"
 
 RELEASE_URL="${RELEASE_URL:-}"
 PREVIEW_URL="${PREVIEW_URL:-}"
+DASHBOARD_URL="${DASHBOARD_URL:-}"
 FINAL_MESSAGE="${FINAL_MESSAGE:-}"
 USER_SUMMARY="${USER_SUMMARY:-}"
+SCRIPTS_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 if [[ -z "$USER_SUMMARY" ]]; then
-  USER_SUMMARY="$(bash "$(dirname "$0")/render-user-summary.sh" 2>/dev/null || true)"
+  USER_SUMMARY="$(bash "$SCRIPTS_DIR/render-user-summary.sh" 2>/dev/null || true)"
+fi
+
+if [[ -z "$DASHBOARD_URL" ]]; then
+  DASHBOARD_URL="$(node "$SCRIPTS_DIR/resolve-dashboard-url.mjs" 2>/dev/null || true)"
 fi
 
 build_payload() {
@@ -67,6 +73,7 @@ build_payload() {
     --arg projectDir "$PROJECT_DIR" \
     --arg releaseUrl "$RELEASE_URL" \
     --arg previewUrl "$PREVIEW_URL" \
+    --arg dashboardUrl "$DASHBOARD_URL" \
     --arg finalMessage "$FINAL_MESSAGE" \
     --arg userSummary "$USER_SUMMARY" \
     '{
@@ -88,7 +95,8 @@ build_payload() {
       },
       outcome: {
         releaseUrl: (if $releaseUrl == "" then null else $releaseUrl end),
-        previewUrl: (if $previewUrl == "" then null else $previewUrl end)
+        previewUrl: (if $previewUrl == "" then null else $previewUrl end),
+        dashboardUrl: (if $dashboardUrl == "" then null else $dashboardUrl end)
       },
       finalMessage: (if $finalMessage == "" then null else $finalMessage end),
       userSummary: (if $userSummary == "" then null else $userSummary end)
