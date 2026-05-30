@@ -49,7 +49,7 @@ Generate a key in the [API Keys Manager](https://manage.wix.com/account/api-keys
 npx @wix/cli login --api-key "$WIX_CLI_API_KEY"
 ```
 
-**Permissions:** start with **Wix CLI - Git Integration** (documented for [GitHub Actions + Wix CLI](https://dev.wix.com/docs/develop-websites/articles/workspace-tools/developer-tools/git-integration-wix-cli-for-sites/set-up-git-hub-actions-to-work-with-the-wix-cli-for-sites.md)). Full bootstrap also scaffolds new sites, installs apps, and seeds content — if those steps return `403`, add the relevant permissions (Stores, CMS, Blog, Forms, etc.) to the key.
+**Permissions:** start with **Wix CLI - Git Integration** (documented for [GitHub Actions + Wix CLI](https://dev.wix.com/docs/develop-websites/articles/workspace-tools/developer-tools/git-integration-wix-cli-for-sites/set-up-git-hub-actions-to-work-with-the-wix-cli-for-sites.md)). Full bootstrap also scaffolds new sites, installs apps, and seeds content — if those steps return `403`, add the relevant permissions (Stores, CMS, Blog, Forms, etc.) to the key. To send the post-bootstrap co-owner invite, add **Manage Contributors** to the key.
 
 Store the key as org or repo secret `WIX_CLI_API_KEY`. No self-hosted runner required.
 
@@ -64,6 +64,7 @@ Store the key as org or repo secret `WIX_CLI_API_KEY`. No self-hosted runner req
 | --- | --- | --- |
 | `site_name` | yes | Brand / display name (from n8n) |
 | `site_prompt` | yes | Full site brief — Codex infers Stores/CMS/Blog/Forms from this |
+| `coowner_email` | no | Email to invite as site co-owner (omit to skip) |
 
 **What it does:**
 
@@ -72,7 +73,8 @@ Store the key as org or repo secret `WIX_CLI_API_KEY`. No self-hosted runner req
 3. Writes `.github/codex/.bootstrap-context.json` from inputs
 4. Runs Codex (`openai/codex-action@v1`) with `AGENTS.md` + skill instructions
 5. Commits generated project files and pushes (site always lives in `./site/`)
-6. Builds and runs `scripts/preview-to-wix.sh` — preview URL and a plain-language **Your site** summary in the job summary, webhook (`userSummary`), and `.wix/run.json`
+6. Sends a Wix co-owner collaboration invite when `coowner_email` is provided
+7. Builds and runs `scripts/preview-to-wix.sh` — preview URL and a plain-language **Your site** summary in the job summary, webhook (`userSummary`), and `.wix/run.json`
 
 Production release is a separate step — run **Deploy** after approving the preview.
 
@@ -119,7 +121,8 @@ Content-Type: application/json
   "ref": "main",
   "inputs": {
     "site_name": "Bloom & Root",
-    "site_prompt": "Build a modern skincare ecommerce store with hero, about, and contact form. Warm minimal aesthetic, sell serums and moisturizers online."
+    "site_prompt": "Build a modern skincare ecommerce store with hero, about, and contact form. Warm minimal aesthetic, sell serums and moisturizers online.",
+    "coowner_email": "owner@example.com"
   }
 }
 ```
@@ -202,6 +205,7 @@ Codex reads **`AGENTS.md`** at repo root. Key CI behaviors:
 │   ├── commit-staged-edit-pr.sh
 │   ├── prepare-edit-context.sh
 │   ├── preview-to-wix.sh
+│   ├── invite-site-coowner.sh       # Post-bootstrap co-owner collaboration invite
 │   ├── render-user-summary.sh         # Plain-language site summary for job summary + webhook
 │   ├── notify-webhook.sh
 │   └── release-to-wix.sh

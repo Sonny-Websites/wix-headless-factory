@@ -7,7 +7,7 @@ Checklist for wiring n8n to clone this template and bootstrap a Wix Headless sit
 - [ ] Publish `wix-headless-factory` as a GitHub template repository
 - [ ] Org secrets: `OPENAI_API_KEY`, `WIX_CLI_API_KEY`
 - [ ] Optional: `N8N_WEBHOOK_URL_TEST` and/or `N8N_WEBHOOK_URL_PROD` (+ `N8N_WEBHOOK_SECRET`) on each site repo for completion callbacks
-- [ ] Wix API key in [API Keys Manager](https://manage.wix.com/account/api-keys) with **Wix CLI - Git Integration** (+ Stores/CMS/etc. if bootstrap needs them)
+- [ ] Wix API key in [API Keys Manager](https://manage.wix.com/account/api-keys) with **Wix CLI - Git Integration** (+ Stores/CMS/etc. if bootstrap needs them) and **Manage Contributors** (co-owner invite)
 
 No self-hosted runner required — workflows use `ubuntu-latest`.
 
@@ -38,7 +38,8 @@ POST /repos/{owner}/{repo}/actions/workflows/bootstrap.yml/dispatches
   "ref": "main",
   "inputs": {
     "site_name": "{{ $json.siteName }}",
-    "site_prompt": "{{ $json.sitePrompt }}"
+    "site_prompt": "{{ $json.sitePrompt }}",
+    "coowner_email": "{{ $json.ownerEmail }}"
   }
 }
 ```
@@ -49,6 +50,7 @@ Map n8n fields:
 | --- | --- |
 | Customer / brand name | `site_name` |
 | Full creative brief | `site_prompt` |
+| Site owner Wix account email | `coowner_email` |
 
 ### Node C — Wait for completion
 

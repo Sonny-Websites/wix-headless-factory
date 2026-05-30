@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 /**
  * Resolve Wix dashboard URL for webhook outcome.
- * Prefers explicit env, then run.json, agent return JSON, then site.json siteId.
+ * Prefers explicit env, then run.json, agent return JSON, then site ID (resolve-site-id.mjs).
  */
 import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const runJsonPath = process.env.RUN_JSON_PATH || '.wix/run.json';
-const siteJsonPath = process.env.SITE_JSON_PATH || '.wix/site.json';
 const finalMessage = process.env.FINAL_MESSAGE || '';
+const scriptDir = dirname(fileURLToPath(import.meta.url));
 
 function extractJsonBlock(text) {
   const matches = [...text.matchAll(/```(?:json|jsonc)\s*([\s\S]*?)```/g)];
@@ -46,20 +49,22 @@ function readFinalMessageDashboard() {
   return '';
 }
 
-function readSiteDashboard() {
+function readSiteIdDashboard() {
   try {
-    const site = JSON.parse(readFileSync(siteJsonPath, 'utf8'));
-    const siteId = site.siteId || site.metaSiteId || site.id;
+    const siteId = execFileSync('node', [join(scriptDir, 'resolve-site-id.mjs')], {
+      encoding: 'utf8',
+      env: process.env,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
     return dashboardFromSiteId(siteId);
   } catch {
-    // site.json may be absent
+    return '';
   }
-  return '';
 }
 
 const explicit = (process.env.DASHBOARD_URL || '').trim();
 const resolved =
-  explicit || readRunDashboard() || readFinalMessageDashboard() || readSiteDashboard();
+  explicit || readRunDashboard() || readFinalMessageDashboard() || readSiteIdDashboard();
 
 if (resolved) {
   process.stdout.write(`${resolved}\n`);

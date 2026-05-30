@@ -11,6 +11,10 @@ on:
         description: Full natural-language site brief (passed from n8n)
         required: true
         type: string
+      coowner_email:
+        description: Email address to invite as site co-owner (omit to skip invite)
+        required: false
+        type: string
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
@@ -92,6 +96,14 @@ jobs:
           GIT_USER_NAME: github-actions[bot]
           GIT_USER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
         run: bash scripts/commit-generated.sh
+
+      - name: Invite site co-owner
+        if: inputs.coowner_email != ''
+        env:
+          WIX_CLI_API_KEY: ${{ secrets.WIX_CLI_API_KEY }}
+          COOWNER_EMAIL: ${{ inputs.coowner_email }}
+          PROJECT_DIR: ${{ env.PROJECT_DIR }}
+        run: bash scripts/invite-site-coowner.sh
 
       - name: Install project dependencies
         run: |

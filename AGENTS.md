@@ -86,7 +86,8 @@ Critical checkpoints:
 4. **Seed + Orchestration** — full skill flow through components, pages, images.
 5. **Build** — if `package.json` changed, run `npm install` in `./site/` and commit `package-lock.json`; then `npx @wix/cli build` must exit 0 before commit.
 6. **Preview** (CI after commit) — `PROJECT_DIR=site bash scripts/preview-to-wix.sh`; capture stdout as preview URL. Do not run preview in Codex.
-7. **Release** — use the separate **Deploy** workflow (`scripts/release-to-wix.sh`); do not release during bootstrap.
+7. **Co-owner invite** (CI after commit) — CI sends a site collaboration invite at co-owner level via `scripts/invite-site-coowner.sh` when the `coowner_email` workflow input is set. Do not run during Codex.
+8. **Release** — use the separate **Deploy** workflow (`scripts/release-to-wix.sh`); do not release during bootstrap.
 
 Write **`.wix/run.json`** at end of run per `references/shared/RETURN_CONTRACT.md`.
 
