@@ -78,6 +78,25 @@ Store the key as org or repo secret `WIX_CLI_API_KEY`. No self-hosted runner req
 
 Production release is a separate step — run **Deploy** after approving the preview.
 
+### Invite co-owner (`invite-coowner.yml`)
+
+**Trigger:** `workflow_dispatch` or reusable `workflow_call`  
+**Runner:** `ubuntu-latest`
+
+| Input | Required | Description |
+| --- | --- | --- |
+| `coowner_email` | yes | Email to invite as site co-owner |
+| `project_dir` | no | Wix project path (default `site`) |
+
+**What it does:**
+
+1. Authenticates Wix CLI with `WIX_CLI_API_KEY`
+2. Sends a co-owner collaboration invite via `scripts/invite-site-coowner.sh`
+3. Records invite details in `.wix/run.json` and commits if changed
+4. POSTs `invite.completed` to n8n webhooks when configured
+
+Use this to invite (or re-invite) a co-owner without re-running bootstrap.
+
 ### Edit and preview (`edit-and-preview.yml`)
 
 **Trigger:** `workflow_dispatch`  
@@ -134,7 +153,7 @@ Content-Type: application/json
 - Headers: `Authorization: Bearer {{$credentials.githubToken}}`, `Accept: application/vnd.github+json`
 - Body (JSON): map your site name and prompt fields to `inputs.site_name` and `inputs.site_prompt`
 
-**On completion (recommended):** set `N8N_WEBHOOK_URL_TEST` and/or `N8N_WEBHOOK_URL_PROD` on the repo. Each workflow POSTs the same JSON payload to every configured URL (`bootstrap.completed`, `edit.completed`, or `deploy.completed`) with `jobResult`, `repoName`, `runUrl`, and `outcome.previewUrl` / `outcome.releaseUrl` / `outcome.dashboardUrl`. Failed deliveries retry up to 3 times with backoff. Use an n8n **Webhook** trigger instead of polling.
+**On completion (recommended):** set `N8N_WEBHOOK_URL_TEST` and/or `N8N_WEBHOOK_URL_PROD` on the repo. Each workflow POSTs the same JSON payload to every configured URL (`bootstrap.completed`, `edit.completed`, `deploy.completed`, or `invite.completed`) with `jobResult`, `repoName`, `runUrl`, and `outcome.previewUrl` / `outcome.releaseUrl` / `outcome.dashboardUrl`. Failed deliveries retry up to 3 times with backoff. Use an n8n **Webhook** trigger instead of polling.
 
 Poll run status (fallback):
 
@@ -186,6 +205,7 @@ Codex reads **`AGENTS.md`** at repo root. Key CI behaviors:
 ├── .github/
 │   ├── workflows/
 │   │   ├── bootstrap.yml              # n8n entry point — new site
+│   │   ├── invite-coowner.yml         # Standalone co-owner collaboration invite
 │   │   ├── edit-and-preview.yml       # Codex edit → merge → wix preview
 │   │   └── deploy.yml                 # Production release (after preview approval)
 │   └── codex/

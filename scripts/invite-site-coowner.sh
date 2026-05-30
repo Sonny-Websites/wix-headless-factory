@@ -16,6 +16,7 @@ if [[ -z "$COOWNER_EMAIL" ]]; then
 fi
 
 COOWNER_POLICY_ID="${COOWNER_POLICY_ID:-6600344420111308827}"
+WIX_ACCOUNT_ID="${WIX_ACCOUNT_ID:-faa4dc58-376a-48c5-bd58-a2f1df97389d}"
 
 if [[ -z "${WIX_CLI_API_KEY:-}" ]]; then
   echo "invite-site-coowner.sh: WIX_CLI_API_KEY is required to send site invites" >&2
@@ -24,20 +25,14 @@ fi
 
 bash "$SCRIPTS_DIR/verify-wix-auth.sh"
 
-SITE_ID="$(REPO_ROOT="$REPO_ROOT" PROJECT_DIR="$PROJECT_DIR" node "$SCRIPTS_DIR/resolve-site-id.mjs" || true)"
-if [[ -z "$SITE_ID" ]]; then
-  echo "invite-site-coowner.sh: could not resolve site ID from .wix/site.json or wix.config.json" >&2
-  exit 1
-fi
-
-echo "invite-site-coowner.sh: resolved site ID $SITE_ID" >&2
+echo "invite-site-coowner.sh: using account ID $WIX_ACCOUNT_ID" >&2
 
 resolve_coowner_policy_id() {
   local roles_response policy_id
   roles_response="$(curl -fsS \
     -X GET 'https://www.wixapis.com/roles-management/roles?filter.role_level=SITE_LEVEL&locale=en' \
     -H "Authorization: ${WIX_CLI_API_KEY}" \
-    -H "wix-site-id: ${SITE_ID}" \
+    -H "wix-account-id: ${WIX_ACCOUNT_ID}" \
     -H 'Content-Type: application/json' || true)"
 
   if [[ -n "$roles_response" ]]; then
@@ -70,7 +65,7 @@ RESPONSE_FILE="$(mktemp)"
 HTTP_STATUS="$(curl -sS -o "$RESPONSE_FILE" -w '%{http_code}' \
   -X POST 'https://www.wixapis.com/invites/site-invite/bulk' \
   -H "Authorization: ${WIX_CLI_API_KEY}" \
-  -H "wix-site-id: ${SITE_ID}" \
+  -H "wix-account-id: ${WIX_ACCOUNT_ID}" \
   -H 'Content-Type: application/json' \
   -d "$REQUEST_BODY")"
 
@@ -93,10 +88,11 @@ fi
 
 INVITE_ID="$(echo "$RESPONSE_BODY" | jq -r '.invites[0].id // empty')"
 INVITE_STATUS="$(echo "$RESPONSE_BODY" | jq -r '.invites[0].status // empty')"
-echo "invite-site-coowner.sh: sent co-owner invite to $COOWNER_EMAIL (status=${INVITE_STATUS:-unknown}, id=${INVITE_ID:-n/a})" >&2
+INVITE_SITE_ID="$(echo "$RESPONSE_BODY" | jq -r '.invites[0].siteId // empty')"
+echo "invite-site-coowner.sh: sent co-owner invite to $COOWNER_EMAIL (status=${INVITE_STATUS:-unknown}, id=${INVITE_ID:-n/a}, siteId=${INVITE_SITE_ID:-n/a})" >&2
 
 if [[ -f "$RUN_JSON" ]]; then
-  export RUN_JSON COOWNER_EMAIL INVITE_ID INVITE_STATUS POLICY_ID
+  export RUN_JSON COOWNER_EMAIL INVITE_ID INVITE_STATUS INVITE_SITE_ID POLICY_ID WIX_ACCOUNT_ID
   node --input-type=module - <<'EOF' >&2
 import { readFileSync, writeFileSync } from 'node:fs';
 
@@ -111,6 +107,8 @@ try {
 run.outcome = run.outcome || {};
 run.outcome.coOwnerInvite = {
   email: process.env.COOWNER_EMAIL,
+  accountId: process.env.WIX_ACCOUNT_ID,
+  siteId: process.env.INVITE_SITE_ID || null,
   policyId: process.env.POLICY_ID,
   inviteId: process.env.INVITE_ID || null,
   status: process.env.INVITE_STATUS || 'Pending',

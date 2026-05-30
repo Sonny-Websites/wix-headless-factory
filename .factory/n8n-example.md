@@ -58,7 +58,7 @@ Map n8n fields:
 
 | Field | Meaning |
 | --- | --- |
-| `event` | `bootstrap.completed` \| `edit.completed` \| `deploy.completed` |
+| `event` | `bootstrap.completed` \| `edit.completed` \| `deploy.completed` \| `invite.completed` |
 | `jobResult` | `success` \| `failure` \| `cancelled` |
 | `repository` | Full GitHub repo (`owner/repo-name`) |
 | `repoOwner` | GitHub org or user |
@@ -116,6 +116,20 @@ POST /repos/{owner}/{repo}/actions/workflows/edit-and-preview.yml/dispatches
 ```
 
 Poll the run; share `outcome.previewUrl` from `.wix/run.json` or the job summary. When approved, dispatch `deploy.yml` (section 3).
+
+## 3c. Invite site co-owner (standalone)
+
+```
+POST /repos/{owner}/{repo}/actions/workflows/invite-coowner.yml/dispatches
+{
+  "ref": "main",
+  "inputs": {
+    "coowner_email": "{{ $json.ownerEmail }}"
+  }
+}
+```
+
+Use after bootstrap if you skipped the invite, or to re-send. Check `runJson.outcome.coOwnerInvite` in the webhook payload.
 
 ## 4. Prompt tips for n8n
 
